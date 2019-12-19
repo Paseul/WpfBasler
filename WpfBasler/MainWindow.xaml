@@ -1,0 +1,15 @@
+﻿<Window x:Class="WpfBasler.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:WpfBasler"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="750" Width="1080" Loaded="Window_Loaded">
+    <Grid Background="Gray">
+        <Button x:Name="btnOneShot" Content="Button" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Width="75" Click="btnOneShot_Click"/>
+        <Image x:Name="imgCamera" HorizontalAlignment="Left" Height="687" Margin="90,10,0,0" VerticalAlignment="Top" Width="960" OpacityMask="Black"/>
+        <Button x:Name="btnConShot" Content="Button" HorizontalAlignment="Left" Margin="10,35,0,0" VerticalAlignment="Top" Width="75" Click="btnConShot_Click"/>
+
+    </Grid>
+</Window>
