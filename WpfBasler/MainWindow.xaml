@@ -5,11 +5,17 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:WpfBasler"
         mc:Ignorable="d"
-        Title="MainWindow" Height="750" Width="1080" Loaded="Window_Loaded">
+        Title="MainWindow" Height="750" Width="1380" Loaded="Window_Loaded">
     <Grid Background="Gray">
-        <Button x:Name="btnOneShot" Content="Button" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Width="75" Click="btnOneShot_Click"/>
-        <Image x:Name="imgCamera" HorizontalAlignment="Left" Height="687" Margin="90,10,0,0" VerticalAlignment="Top" Width="960" OpacityMask="Black"/>
-        <Button x:Name="btnConShot" Content="Button" HorizontalAlignment="Left" Margin="10,35,0,0" VerticalAlignment="Top" Width="75" Click="btnConShot_Click"/>
+        <Button x:Name="btnOneShot" Content="OneShot" HorizontalAlignment="Left" Margin="10,35,0,0" VerticalAlignment="Top" Width="75" Click="btnOneShot_Click"/>
+        <Image x:Name="imgCamera" HorizontalAlignment="Left" Height="687" Margin="96,10,0,0" VerticalAlignment="Top" Width="1215"/>
+        <Button x:Name="btnConShot" Content="ConShot" HorizontalAlignment="Left" Margin="10,80,0,0" VerticalAlignment="Top" Width="75" Click="btnConShot_Click"/>
+        <Button x:Name="btnConnect" Content="Connect" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Width="75" RenderTransformOrigin="-0.26,0.575" Click="btnConnect_Click"/>
+        <Button x:Name="btnDisConnect" Content="Disconnect" HorizontalAlignment="Left" Margin="9,105,0,0" VerticalAlignment="Top" Width="76" Click="btnDisConnect_Click"/>
+        <CheckBox x:Name="checkSave" Content="Save Video" HorizontalAlignment="Left" Margin="10,60,0,0" VerticalAlignment="Top" Checked="checkSave_Checked"/>
+        <Slider x:Name="sliderGain" TickPlacement="BottomRight" TickFrequency="1" Maximum="16.67" HorizontalAlignment="Left" Margin="10,151,0,0" VerticalAlignment="Top" Width="75" ValueChanged="sliderGain_ValueChanged"/>
+        <TextBox Text="{Binding ElementName=sliderGain, Path=Value, UpdateSourceTrigger=PropertyChanged}" HorizontalAlignment="Left" Height="24" Margin="10,180,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="75"/>
+        <TextBlock x:Name="txtGain" HorizontalAlignment="Left" Margin="10,130,0,0" TextWrapping="Wrap" Text="Gain" VerticalAlignment="Top"/>
 
     </Grid>
 </Window>
