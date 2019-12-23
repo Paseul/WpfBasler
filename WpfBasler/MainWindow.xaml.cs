@@ -239,13 +239,37 @@ namespace WpfBasler
                             Cv2.CvtColor(img, img, ColorConversionCodes.BayerBG2RGB);
                             //img = Cv2.ImRead("colorball.png");
                             //img = houghCircles(img);
-                            Cv2.Resize(img, img, new OpenCvSharp.Size(1920, 1374), 0, 0, InterpolationFlags.Linear);
+
+                            Mat gray = new Mat();
+                            Mat binary = new Mat();
+                            Mat morp = new Mat();
+                            Mat canny = new Mat();
+                            Mat dst = img.Clone();
+
+                            Mat kernel = Cv2.GetStructuringElement(MorphShapes.Rect, new OpenCvSharp.Size(3, 3));
+
+                            Cv2.CvtColor(img, gray, ColorConversionCodes.BGR2GRAY);
+                            Cv2.Threshold(gray, binary, 150, 255, ThresholdTypes.Binary);
+                            Cv2.Dilate(binary, morp, kernel, new OpenCvSharp.Point(-1, -1));
+                            Cv2.Erode(morp, morp, kernel, new OpenCvSharp.Point(-1, -1), 3);
+                            Cv2.Dilate(morp, morp, kernel, new OpenCvSharp.Point(-1, -1), 2);
+                            Cv2.Canny(morp, canny, 0, 0, 3);
+
+                            LineSegmentPoint[] lines = Cv2.HoughLinesP(canny, 1, Cv2.PI / 90, 10, 10, 10);
+
+                            for (int i = 0; i < lines.Length; i++)
+                            {
+                                Cv2.Line(dst, lines[i].P1, lines[i].P2, Scalar.Red, 10);
+                            }
+
+
+                            Cv2.Resize(dst, dst, new OpenCvSharp.Size(1920, 1374), 0, 0, InterpolationFlags.Linear);
                             if (isWrite)
-                                videoWriter.Write(img);
+                                videoWriter.Write(dst);
                             // resize image  to fit the imageBox
-                            Cv2.Resize(img, img, new OpenCvSharp.Size(960, 687), 0, 0, InterpolationFlags.Linear);
+                            Cv2.Resize(dst, dst, new OpenCvSharp.Size(960, 687), 0, 0, InterpolationFlags.Linear);
                             // copy processed image to imagebox.image
-                            Bitmap bitmap = OpenCvSharp.Extensions.BitmapConverter.ToBitmap(img);
+                            Bitmap bitmap = OpenCvSharp.Extensions.BitmapConverter.ToBitmap(dst);
 
                             BitmapToImageSource(bitmap);
                         }
