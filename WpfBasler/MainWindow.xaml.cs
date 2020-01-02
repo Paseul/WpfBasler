@@ -34,6 +34,8 @@ namespace WpfBasler
         Dispatcher dispatcher = Application.Current.Dispatcher;
         OpenCvSharp.VideoWriter videoWriter = new OpenCvSharp.VideoWriter();
         bool isWrite = false;
+        bool isHoughLines = false;
+        bool isHoughCircles = false;
 
         public MainWindow()
         {
@@ -78,35 +80,19 @@ namespace WpfBasler
                         // convert image from BayerBG to RGB
                         Cv2.CvtColor(img, img, ColorConversionCodes.BayerBG2RGB);
 
-                        Mat gray = new Mat();
-                        Mat binary = new Mat();
-                        Mat morp = new Mat();
-                        Mat canny = new Mat();
                         Mat dst = img.Clone();
-
-                        Mat kernel = Cv2.GetStructuringElement(MorphShapes.Rect, new OpenCvSharp.Size(3, 3));
-
-                        Cv2.CvtColor(img, gray, ColorConversionCodes.BGR2GRAY);
-                        Cv2.Threshold(gray, binary, 150, 255, ThresholdTypes.Binary);
-                        Cv2.Dilate(binary, morp, kernel, new OpenCvSharp.Point(-1, -1));
-                        Cv2.Erode(morp, morp, kernel, new OpenCvSharp.Point(-1, -1), 3);
-                        Cv2.Dilate(morp, morp, kernel, new OpenCvSharp.Point(-1, -1), 2);
-                        Cv2.Canny(morp, canny, 0, 0, 3);
-
-                        LineSegmentPoint[] lines = Cv2.HoughLinesP(canny, 1, Cv2.PI / 90, 10, 10, 10);
-
-                        for (int i = 0; i < lines.Length; i++)
-                        {
-                            Cv2.Line(dst, lines[i].P1, lines[i].P2, Scalar.Red, 10);
-                        }
-
-
-                        // save image
-                        Cv2.ImWrite(path, dst);
                         // resize image  to fit the imageBox
                         Cv2.Resize(dst, dst, new OpenCvSharp.Size(960, 687), 0, 0, InterpolationFlags.Linear);
+
+                        if (isHoughLines)
+                            dst = houghLines(img);
+
+                        dst = histogram(dst);
+
+                        // save image
+                        Cv2.ImWrite(path, dst);                        
                         // copy processed image to imgCamera.Source
-                        imgCamera.Source = dst.ToWriteableBitmap(PixelFormats.Bgr24); 
+                        imgCamera.Source = dst.ToWriteableBitmap(PixelFormats.Gray8); 
                     }
                     else
                     {
@@ -165,8 +151,56 @@ namespace WpfBasler
             converter.OutputPixelFormat = PixelType.BGR8packed;
             byte[] buffer = grabResult.PixelData as byte[];
             return new Mat(grabResult.Height, grabResult.Width, MatType.CV_8U, buffer);
-        }    
-        
+        }
+
+        private Mat histogram(Mat src)
+        {
+            Mat gray = new Mat();
+            Mat hist = new Mat();
+            Mat result = Mat.Ones(new OpenCvSharp.Size(256, src.Height), MatType.CV_8UC1);
+            Mat dst = new Mat();
+
+            Cv2.CvtColor(src, gray, ColorConversionCodes.BGR2GRAY);
+            Cv2.CalcHist(new Mat[] { gray }, new int[] { 0 }, null, hist, 1, new int[] { 256 }, new Rangef[] { new Rangef(0, 256) });
+            Cv2.Normalize(hist, hist, 0, 255, NormTypes.MinMax);
+
+            for (int i = 0; i < hist.Rows; i++)
+            {
+                Cv2.Line(result, new OpenCvSharp.Point(i, src.Height), new OpenCvSharp.Point(i, src.Height - hist.Get<float>(i)), Scalar.White);
+            }
+
+            Cv2.HConcat(new Mat[] { gray, result }, dst);
+
+            return dst;            
+        }
+
+        private Mat houghLines(Mat img)
+        {
+            Mat gray = new Mat();
+            Mat binary = new Mat();
+            Mat morp = new Mat();
+            Mat canny = new Mat();
+            Mat dst = img.Clone();
+
+            Mat kernel = Cv2.GetStructuringElement(MorphShapes.Rect, new OpenCvSharp.Size(3, 3));
+
+            Cv2.CvtColor(img, gray, ColorConversionCodes.BGR2GRAY);
+            Cv2.Threshold(gray, binary, 150, 255, ThresholdTypes.Binary);
+            Cv2.Dilate(binary, morp, kernel, new OpenCvSharp.Point(-1, -1));
+            Cv2.Erode(morp, morp, kernel, new OpenCvSharp.Point(-1, -1), 3);
+            Cv2.Dilate(morp, morp, kernel, new OpenCvSharp.Point(-1, -1), 2);
+            Cv2.Canny(morp, canny, 0, 0, 3);
+
+            LineSegmentPoint[] lines = Cv2.HoughLinesP(canny, 1, Cv2.PI / 90, 10, 10, 10);
+
+            for (int i = 0; i < lines.Length; i++)
+            {
+                Cv2.Line(dst, lines[i].P1, lines[i].P2, Scalar.Red, 10);
+            }
+
+            return dst;
+        }
+
         private Mat houghCircles(Mat img)
         {
             Mat image = new Mat();
@@ -237,30 +271,11 @@ namespace WpfBasler
                             Mat img = convertIImage2Mat(grabResult);
                             // convert image from BayerBG to RGB
                             Cv2.CvtColor(img, img, ColorConversionCodes.BayerBG2RGB);
-                            //img = Cv2.ImRead("colorball.png");
-                            //img = houghCircles(img);
 
-                            Mat gray = new Mat();
-                            Mat binary = new Mat();
-                            Mat morp = new Mat();
-                            Mat canny = new Mat();
                             Mat dst = img.Clone();
 
-                            Mat kernel = Cv2.GetStructuringElement(MorphShapes.Rect, new OpenCvSharp.Size(3, 3));
-
-                            Cv2.CvtColor(img, gray, ColorConversionCodes.BGR2GRAY);
-                            Cv2.Threshold(gray, binary, 150, 255, ThresholdTypes.Binary);
-                            Cv2.Dilate(binary, morp, kernel, new OpenCvSharp.Point(-1, -1));
-                            Cv2.Erode(morp, morp, kernel, new OpenCvSharp.Point(-1, -1), 3);
-                            Cv2.Dilate(morp, morp, kernel, new OpenCvSharp.Point(-1, -1), 2);
-                            Cv2.Canny(morp, canny, 0, 0, 3);
-
-                            LineSegmentPoint[] lines = Cv2.HoughLinesP(canny, 1, Cv2.PI / 90, 10, 10, 10);
-
-                            for (int i = 0; i < lines.Length; i++)
-                            {
-                                Cv2.Line(dst, lines[i].P1, lines[i].P2, Scalar.Red, 10);
-                            }
+                            if (isHoughLines)
+                                dst = houghLines(img);
 
 
                             Cv2.Resize(dst, dst, new OpenCvSharp.Size(1920, 1374), 0, 0, InterpolationFlags.Linear);
@@ -357,6 +372,42 @@ namespace WpfBasler
         private void checkSave_Checked(object sender, RoutedEventArgs e)
         {
             isWrite = true;
+        }
+
+        private void radioHoughLines_Checked(object sender, RoutedEventArgs e)
+        {
+            isHoughLines = true;
+        }
+
+        private void radioHoughCircles_Checked(object sender, RoutedEventArgs e)
+        {
+            Mat src = Cv2.ImRead("colorball.png");
+            Mat gray = new Mat();
+            Mat hist = new Mat();
+            Mat result = Mat.Ones(new OpenCvSharp.Size(256, src.Height), MatType.CV_8UC1);
+            Mat dst = new Mat();
+
+            Cv2.CvtColor(src, gray, ColorConversionCodes.BGR2GRAY);
+            Cv2.CalcHist(new Mat[] { gray }, new int[] { 0 }, null, hist, 1, new int[] { 256 }, new Rangef[] { new Rangef(0, 256) });
+            Cv2.Normalize(hist, hist, 0, 255, NormTypes.MinMax);
+
+            for (int i = 0; i < hist.Rows; i++)
+            {
+                Cv2.Line(result, new OpenCvSharp.Point(i, src.Height), new OpenCvSharp.Point(i, src.Height - hist.Get<float>(i)), Scalar.White);
+            }
+
+            Cv2.HConcat(new Mat[] { gray, result }, dst);
+            Cv2.ImShow("dst", dst);
+        }
+
+        private void radioHoughLines_Unchecked(object sender, RoutedEventArgs e)
+        {
+            isHoughLines = false;
+        }
+
+        private void radioHoughCircles_Unchecked(object sender, RoutedEventArgs e)
+        {
+
         }
     }
 }

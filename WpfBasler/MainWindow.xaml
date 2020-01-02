@@ -7,15 +7,17 @@
         mc:Ignorable="d"
         Title="MainWindow" Height="750" Width="1600" Loaded="Window_Loaded">
     <Grid Background="Gray">
-        <Button x:Name="btnOneShot" Content="OneShot" HorizontalAlignment="Left" Margin="96,35,0,0" VerticalAlignment="Top" Width="75" Click="btnOneShot_Click"/>
+        <Button x:Name="btnOneShot" Content="OneShot" HorizontalAlignment="Left" Margin="97,99,0,0" VerticalAlignment="Top" Width="75" Click="btnOneShot_Click"/>
         <Image x:Name="imgCamera" HorizontalAlignment="Left" Height="687" Margin="367,10,0,0" VerticalAlignment="Top" Width="1215"/>
-        <Button x:Name="btnConShot" Content="ConShot" HorizontalAlignment="Left" Margin="96,60,0,0" VerticalAlignment="Top" Width="75" Click="btnConShot_Click"/>
+        <Button x:Name="btnConShot" Content="ConShot" HorizontalAlignment="Left" Margin="97,124,0,0" VerticalAlignment="Top" Width="75" Click="btnConShot_Click"/>
         <Button x:Name="btnConnect" Content="Connect" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Width="75" RenderTransformOrigin="-0.26,0.575" Click="btnConnect_Click"/>
         <Button x:Name="btnDisConnect" Content="Disconnect" HorizontalAlignment="Left" Margin="96,10,0,0" VerticalAlignment="Top" Width="76" Click="btnDisConnect_Click"/>
-        <CheckBox x:Name="checkSave" Content="Save Video" HorizontalAlignment="Left" Margin="10,63,0,0" VerticalAlignment="Top" Checked="checkSave_Checked"/>
-        <Slider x:Name="sliderGain" TickPlacement="BottomRight" TickFrequency="1" Maximum="16.67" HorizontalAlignment="Left" Margin="96,85,0,0" VerticalAlignment="Top" Width="75" ValueChanged="sliderGain_ValueChanged"/>
-        <TextBox Text="{Binding ElementName=sliderGain, Path=Value, UpdateSourceTrigger=PropertyChanged}" HorizontalAlignment="Left" Height="24" Margin="176,85,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="40"/>
-        <TextBlock x:Name="txtGain" HorizontalAlignment="Left" Margin="41,88,0,0" TextWrapping="Wrap" Text="Gain" VerticalAlignment="Top"/>
+        <CheckBox x:Name="checkSave" Content="Save Video" HorizontalAlignment="Left" Margin="11,127,0,0" VerticalAlignment="Top" Checked="checkSave_Checked"/>
+        <Slider x:Name="sliderGain" TickPlacement="BottomRight" TickFrequency="1" Maximum="16.67" HorizontalAlignment="Left" Margin="97,149,0,0" VerticalAlignment="Top" Width="75" ValueChanged="sliderGain_ValueChanged"/>
+        <TextBox Text="{Binding ElementName=sliderGain, Path=Value, UpdateSourceTrigger=PropertyChanged}" HorizontalAlignment="Left" Height="24" Margin="177,149,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="40"/>
+        <TextBlock x:Name="txtGain" HorizontalAlignment="Left" Margin="42,152,0,0" TextWrapping="Wrap" Text="Gain" VerticalAlignment="Top"/>
+        <RadioButton x:Name="radioHoughLines" Content="houghLines" HorizontalAlignment="Left" Margin="11,73,0,0" VerticalAlignment="Top" Checked="radioHoughLines_Checked" Unchecked="radioHoughLines_Unchecked"/>
+        <RadioButton x:Name="radioHoughCircles" Content="houghCircles" HorizontalAlignment="Left" Margin="98,73,0,0" VerticalAlignment="Top" Checked="radioHoughCircles_Checked" Unchecked="radioHoughCircles_Unchecked"/>
 
     </Grid>
 </Window>
