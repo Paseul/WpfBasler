@@ -80,19 +80,24 @@ namespace WpfBasler
                         // convert image from BayerBG to RGB
                         Cv2.CvtColor(img, img, ColorConversionCodes.BayerBG2RGB);
 
+                        Mat histo = new Mat();
                         Mat dst = img.Clone();
-                        // resize image  to fit the imageBox
-                        Cv2.Resize(dst, dst, new OpenCvSharp.Size(960, 687), 0, 0, InterpolationFlags.Linear);
-
+                        
                         if (isHoughLines)
                             dst = houghLines(img);
 
-                        dst = histogram(dst);
+                        histo = histogram(dst);
 
                         // save image
-                        Cv2.ImWrite(path, dst);                        
+                        Cv2.ImWrite(path, dst);
+
+                        // resize image  to fit the imageBox
+                        Cv2.Resize(dst, dst, new OpenCvSharp.Size(960, 687), 0, 0, InterpolationFlags.Linear);
+                        Cv2.Resize(histo, histo, new OpenCvSharp.Size(256, 687), 0, 0, InterpolationFlags.Linear);
+
                         // copy processed image to imgCamera.Source
-                        imgCamera.Source = dst.ToWriteableBitmap(PixelFormats.Gray8); 
+                        imgCamera.Source = dst.ToWriteableBitmap(PixelFormats.Bgr24);
+                        imgHisto.Source = histo.ToWriteableBitmap(PixelFormats.Gray8);
                     }
                     else
                     {
@@ -158,7 +163,6 @@ namespace WpfBasler
             Mat gray = new Mat();
             Mat hist = new Mat();
             Mat result = Mat.Ones(new OpenCvSharp.Size(256, src.Height), MatType.CV_8UC1);
-            Mat dst = new Mat();
 
             Cv2.CvtColor(src, gray, ColorConversionCodes.BGR2GRAY);
             Cv2.CalcHist(new Mat[] { gray }, new int[] { 0 }, null, hist, 1, new int[] { 256 }, new Rangef[] { new Rangef(0, 256) });
@@ -169,9 +173,7 @@ namespace WpfBasler
                 Cv2.Line(result, new OpenCvSharp.Point(i, src.Height), new OpenCvSharp.Point(i, src.Height - hist.Get<float>(i)), Scalar.White);
             }
 
-            Cv2.HConcat(new Mat[] { gray, result }, dst);
-
-            return dst;            
+            return result;            
         }
 
         private Mat houghLines(Mat img)
@@ -272,21 +274,26 @@ namespace WpfBasler
                             // convert image from BayerBG to RGB
                             Cv2.CvtColor(img, img, ColorConversionCodes.BayerBG2RGB);
 
+                            Mat histo = new Mat();
                             Mat dst = img.Clone();
 
                             if (isHoughLines)
                                 dst = houghLines(img);
 
+                            histo = histogram(dst);
 
                             Cv2.Resize(dst, dst, new OpenCvSharp.Size(1920, 1374), 0, 0, InterpolationFlags.Linear);
                             if (isWrite)
                                 videoWriter.Write(dst);
                             // resize image  to fit the imageBox
                             Cv2.Resize(dst, dst, new OpenCvSharp.Size(960, 687), 0, 0, InterpolationFlags.Linear);
+                            Cv2.Resize(histo, histo, new OpenCvSharp.Size(256, 687), 0, 0, InterpolationFlags.Linear);
                             // copy processed image to imagebox.image
                             Bitmap bitmap = OpenCvSharp.Extensions.BitmapConverter.ToBitmap(dst);
+                            Bitmap bitmapHisto = OpenCvSharp.Extensions.BitmapConverter.ToBitmap(histo);
 
                             BitmapToImageSource(bitmap);
+                            BitmapHistoToImageSource(bitmapHisto);
                         }
                         else
                         {
@@ -325,6 +332,25 @@ namespace WpfBasler
                     bitmapimage.StreamSource = memory;
                     bitmapimage.EndInit();
                     imgCamera.Source = bitmapimage;     
+                }
+            }));
+        }
+
+        void BitmapHistoToImageSource(Bitmap bitmap)
+        {
+            //UI thread에 접근하기 위해 dispatcher 사용
+            dispatcher.BeginInvoke((Action)(() =>
+            {
+                using (MemoryStream memory = new MemoryStream())
+                {
+                    bitmap.Save(memory, System.Drawing.Imaging.ImageFormat.Bmp);
+                    memory.Position = 0;
+                    BitmapImage bitmapimage = new BitmapImage();
+                    bitmapimage.BeginInit();
+                    bitmapimage.CacheOption = BitmapCacheOption.OnLoad;
+                    bitmapimage.StreamSource = memory;
+                    bitmapimage.EndInit();
+                    imgHisto.Source = bitmapimage;
                 }
             }));
         }
