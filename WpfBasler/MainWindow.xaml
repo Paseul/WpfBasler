@@ -13,12 +13,18 @@
         <Button x:Name="btnConnect" Content="Connect" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Width="75" RenderTransformOrigin="-0.26,0.575" Click="btnConnect_Click"/>
         <Button x:Name="btnDisConnect" Content="Disconnect" HorizontalAlignment="Left" Margin="96,10,0,0" VerticalAlignment="Top" Width="76" Click="btnDisConnect_Click"/>
         <CheckBox x:Name="checkSave" Content="Save Video" HorizontalAlignment="Left" Margin="11,127,0,0" VerticalAlignment="Top" Checked="checkSave_Checked"/>
-        <Slider x:Name="sliderGain" TickPlacement="BottomRight" TickFrequency="1" Maximum="16.67" HorizontalAlignment="Left" Margin="97,149,0,0" VerticalAlignment="Top" Width="75" ValueChanged="sliderGain_ValueChanged"/>
-        <TextBox Text="{Binding ElementName=sliderGain, Path=Value, UpdateSourceTrigger=PropertyChanged}" HorizontalAlignment="Left" Height="24" Margin="177,149,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="40"/>
-        <TextBlock x:Name="txtGain" HorizontalAlignment="Left" Margin="42,152,0,0" TextWrapping="Wrap" Text="Gain" VerticalAlignment="Top"/>
-        <RadioButton x:Name="radioHoughLines" Content="houghLines" HorizontalAlignment="Left" Margin="11,73,0,0" VerticalAlignment="Top" Checked="radioHoughLines_Checked" Unchecked="radioHoughLines_Unchecked"/>
-        <RadioButton x:Name="radioHoughCircles" Content="houghCircles" HorizontalAlignment="Left" Margin="98,73,0,0" VerticalAlignment="Top" Checked="radioHoughCircles_Checked" Unchecked="radioHoughCircles_Unchecked"/>
+        <Slider x:Name="sliderGain" TickPlacement="BottomRight" TickFrequency="1" Maximum="16.67" HorizontalAlignment="Left" Margin="97,188,0,0" VerticalAlignment="Top" Width="75" ValueChanged="sliderGain_ValueChanged"/>
+        <TextBox Text="{Binding ElementName=sliderGain, Path=Value, UpdateSourceTrigger=PropertyChanged}" HorizontalAlignment="Left" Height="24" Margin="177,188,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="40"/>
+        <TextBlock x:Name="txtGain" HorizontalAlignment="Left" Margin="42,191,0,0" TextWrapping="Wrap" Text="Gain" VerticalAlignment="Top"/>
         <Image x:Name="imgHisto" HorizontalAlignment="Left" Height="687" Margin="1326,10,0,0" VerticalAlignment="Top" Width="256"/>
+        <Slider x:Name="sliderErode" TickPlacement="BottomRight" TickFrequency="10" Maximum="150" Minimum="1" HorizontalAlignment="Left" Margin="97,217,0,0" VerticalAlignment="Top" Width="75" IsSnapToTickEnabled="True" ValueChanged="sliderErode_ValueChanged" />
+        <TextBox Text="{Binding Value, ElementName=sliderErode, UpdateSourceTrigger=PropertyChanged}" HorizontalAlignment="Left" Height="24" Margin="177,217,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="40"/>
+        <TextBlock x:Name="txtErode" HorizontalAlignment="Left" Margin="42,218,0,0" TextWrapping="Wrap" Text="Erode" VerticalAlignment="Top"/>
+        <CheckBox x:Name="checkClahe" Content="Clahe" HorizontalAlignment="Left" Margin="11,161,0,0" VerticalAlignment="Top" Checked="checkClahe_Checked" Unchecked="checkClahe_Unchecked"/>
+        <CheckBox x:Name="checkEqual" Content="EqualizeHist" HorizontalAlignment="Left" Margin="96,161,0,0" VerticalAlignment="Top" Checked="checkEqual_Checked" Unchecked="checkEqual_Unchecked"/>
+        <RadioButton x:Name="radioHoughlines" Content="HoughLines" HorizontalAlignment="Left" Margin="10,58,0,0" VerticalAlignment="Top" RenderTransformOrigin="-0.081,0.6" Checked="radioHoughlines_Checked" Unchecked="radioHoughlines_Unchecked"/>
+        <RadioButton x:Name="radioHeatmaps" Content="HeatMaps" HorizontalAlignment="Left" Margin="102,58,0,0" VerticalAlignment="Top" Checked="radioHeatmaps_Checked" Unchecked="radioHeatmaps_Unchecked"/>
+        <RadioButton x:Name="radioMinenclosing" Content="MinEnclosing" HorizontalAlignment="Left" Margin="10,78,0,0" VerticalAlignment="Top" Checked="radioMinenclosing_Checked" Unchecked="radioMinenclosing_Unchecked"/>
 
     </Grid>
 </Window>

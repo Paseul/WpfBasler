@@ -35,7 +35,11 @@ namespace WpfBasler
         OpenCvSharp.VideoWriter videoWriter = new OpenCvSharp.VideoWriter();
         bool isWrite = false;
         bool isHoughLines = false;
-        bool isHoughCircles = false;
+        bool isHeatMaps = false;
+        bool isMinEnclosing = false;
+        bool isClahe = false;
+        bool isEqualize = false;
+        int valueErode;
 
         public MainWindow()
         {
@@ -44,7 +48,7 @@ namespace WpfBasler
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            
+            radioHoughlines.IsChecked = true;
         }
         
         public void BaslerCamera(string ip)
@@ -78,15 +82,32 @@ namespace WpfBasler
                         // convert image from basler IImage to OpenCV Mat
                         Mat img = convertIImage2Mat(grabResult);
                         // convert image from BayerBG to RGB
-                        Cv2.CvtColor(img, img, ColorConversionCodes.BayerBG2RGB);
+                        Cv2.CvtColor(img, img, ColorConversionCodes.BayerBG2GRAY);
 
                         Mat histo = new Mat();
+                        Mat binary = new Mat();
                         Mat dst = img.Clone();
+
+                        if (isClahe)
+                        {
+                            CLAHE clahe = Cv2.CreateCLAHE();
+                            clahe = Cv2.CreateCLAHE(clipLimit: 2.0,  tileGridSize: new OpenCvSharp.Size(16.0, 16.0));
+                            clahe.Apply(dst, dst);
+                        }
                         
-                        if (isHoughLines)
-                            dst = houghLines(img);
+                        if(isEqualize)
+                            Cv2.EqualizeHist(dst, dst);
+
+                        Mat kernel = Cv2.GetStructuringElement(MorphShapes.Ellipse, new OpenCvSharp.Size(9, 9));
+                        Cv2.Erode(dst, dst, kernel, new OpenCvSharp.Point(-1, -1), (int)sliderErode.Value, BorderTypes.Reflect101, new Scalar(0));
+
+                        if (isHeatMaps)
+                            Cv2.ApplyColorMap(dst, dst, ColormapTypes.Rainbow);
 
                         histo = histogram(dst);
+
+                        if (isHoughLines)
+                            dst = houghLines(dst);
 
                         // save image
                         Cv2.ImWrite(path, dst);
@@ -96,8 +117,10 @@ namespace WpfBasler
                         Cv2.Resize(histo, histo, new OpenCvSharp.Size(256, 687), 0, 0, InterpolationFlags.Linear);
 
                         // copy processed image to imgCamera.Source
-                        imgCamera.Source = dst.ToWriteableBitmap(PixelFormats.Bgr24);
+                        imgCamera.Source = dst.ToWriteableBitmap(PixelFormats.Gray8);
                         imgHisto.Source = histo.ToWriteableBitmap(PixelFormats.Gray8);
+
+                        
                     }
                     else
                     {
@@ -160,11 +183,11 @@ namespace WpfBasler
 
         private Mat histogram(Mat src)
         {
-            Mat gray = new Mat();
+            Mat gray = src.Clone();  //new Mat();
             Mat hist = new Mat();
             Mat result = Mat.Ones(new OpenCvSharp.Size(256, src.Height), MatType.CV_8UC1);
 
-            Cv2.CvtColor(src, gray, ColorConversionCodes.BGR2GRAY);
+            //Cv2.CvtColor(src, gray, ColorConversionCodes.BGR2GRAY);
             Cv2.CalcHist(new Mat[] { gray }, new int[] { 0 }, null, hist, 1, new int[] { 256 }, new Rangef[] { new Rangef(0, 256) });
             Cv2.Normalize(hist, hist, 0, 255, NormTypes.MinMax);
 
@@ -178,15 +201,17 @@ namespace WpfBasler
 
         private Mat houghLines(Mat img)
         {
-            Mat gray = new Mat();
+            Mat gray = img.Clone();  //new Mat();
             Mat binary = new Mat();
             Mat morp = new Mat();
             Mat canny = new Mat();
             Mat dst = img.Clone();
+            int pointX = 0, pointY = 0;
+            string text;
 
             Mat kernel = Cv2.GetStructuringElement(MorphShapes.Rect, new OpenCvSharp.Size(3, 3));
 
-            Cv2.CvtColor(img, gray, ColorConversionCodes.BGR2GRAY);
+            //Cv2.CvtColor(img, gray, ColorConversionCodes.BGR2GRAY);
             Cv2.Threshold(gray, binary, 150, 255, ThresholdTypes.Binary);
             Cv2.Dilate(binary, morp, kernel, new OpenCvSharp.Point(-1, -1));
             Cv2.Erode(morp, morp, kernel, new OpenCvSharp.Point(-1, -1), 3);
@@ -198,32 +223,74 @@ namespace WpfBasler
             for (int i = 0; i < lines.Length; i++)
             {
                 Cv2.Line(dst, lines[i].P1, lines[i].P2, Scalar.Red, 10);
+                pointX += lines[i].P1.X + lines[i].P2.X;
+                pointY += lines[i].P1.Y + lines[i].P2.Y;
             }
+            if(lines.Length > 0) 
+            {
+                pointX = pointX / (lines.Length * 2);
+                pointY = pointY / (lines.Length * 2) ;
+
+                text = pointX.ToString();
+                text = text + ":" + pointY.ToString();
+                Cv2.PutText(dst, text, new OpenCvSharp.Point(3300, 2700), HersheyFonts.HersheyPlain, 5, Scalar.White, 5);
+            }           
 
             return dst;
         }
 
-        private Mat houghCircles(Mat img)
+        private Mat MinEnclosing(Mat img)
         {
+            Mat binary = new Mat();
+            Mat morp = new Mat();
             Mat image = new Mat();
             Mat dst = img.Clone();
+            int pointX = 0, pointY = 0;
+            string text;
 
             Mat kernel = Cv2.GetStructuringElement(MorphShapes.Rect, new OpenCvSharp.Size(3, 3));
+            OpenCvSharp.Point[][] contours;
+            HierarchyIndex[] hierarchy;
 
-            Cv2.CvtColor(img, image, ColorConversionCodes.BGR2GRAY);
-            Cv2.Dilate(image, image, kernel, new OpenCvSharp.Point(-1, -1), 3);
-            Cv2.GaussianBlur(image, image, new OpenCvSharp.Size(13, 13), 3, 3, BorderTypes.Reflect101);
-            Cv2.Erode(image, image, kernel, new OpenCvSharp.Point(-1, -1), 3);
+            //Cv2.CvtColor(img, img, ColorConversionCodes.BGR2GRAY);
+            Cv2.Threshold(img, binary, 230, 255, ThresholdTypes.Binary);
+            Cv2.MorphologyEx(binary, morp, MorphTypes.Close, kernel, new OpenCvSharp.Point(-1, -1), 2);
+            Cv2.BitwiseNot(morp, image);
 
-            CircleSegment[] circles = Cv2.HoughCircles(image, HoughMethods.Gradient, 4, 100, 100, 30, 0, 0);
+            Cv2.FindContours(image, out contours, out hierarchy, RetrievalModes.Tree, ContourApproximationModes.ApproxTC89KCOS);
 
-            for (int i = 0; i < circles.Length; i++)
+            for (int i = 0; i < contours.Length; i++)
             {
-                OpenCvSharp.Point center = new OpenCvSharp.Point(circles[i].Center.X, circles[i].Center.Y);
+                double perimeter = Cv2.ArcLength(contours[i], true);
+                double epsilon = perimeter * 0.01;
 
-                Cv2.Circle(dst, center, (int)circles[i].Radius, Scalar.White, 3);
-                Cv2.Circle(dst, center, 5, Scalar.AntiqueWhite, Cv2.FILLED);
+                OpenCvSharp.Point[] approx = Cv2.ApproxPolyDP(contours[i], epsilon, true);
+                OpenCvSharp.Point[][] draw_approx = new OpenCvSharp.Point[][] { approx };
+                Cv2.DrawContours(dst, draw_approx, -1, new Scalar(255, 0, 0), 2, LineTypes.AntiAlias);
+
+                Cv2.MinEnclosingCircle(contours[i], out Point2f center, out float radius);
+                Cv2.Circle(dst, new OpenCvSharp.Point(center.X, center.Y), (int)radius, Scalar.Red, 2, LineTypes.AntiAlias);
+
+                pointX += (int)center.X;
+                pointY += (int)center.Y;
+
+                for (int j = 0; j < approx.Length; j++)
+                {
+                    Cv2.Circle(dst, approx[j], 1, new Scalar(0, 0, 255), 3);
+                }
             }
+                                 
+            if (contours.Length > 0)
+            {
+                pointX = pointX / contours.Length;
+                pointY = pointY / contours.Length;
+
+                text = pointX.ToString();
+                text = text + ":" + pointY.ToString();
+                Cv2.PutText(dst, text, new OpenCvSharp.Point(3300, 2700), HersheyFonts.HersheyPlain, 5, Scalar.White, 5);
+            }
+
+
             return dst;
         }
 
@@ -258,8 +325,8 @@ namespace WpfBasler
                 if (isWrite)
                 {
                     var expected = new OpenCvSharp.Size(1920, 1374);
-                    string filename = DateTime.Now.ToString("M.dd-HH.mm.ss") + ".avi";
-                    videoWriter.Open("video.avi", OpenCvSharp.FourCCValues.XVID, 14, expected, true);
+                    string filename = "D:\\save\\" + DateTime.Now.ToString("M.dd-HH.mm.ss") + ".avi";
+                    videoWriter.Open(filename, OpenCvSharp.FourCCValues.XVID, 14, expected, true);
                 }                
                 while (grabbing)
                 {
@@ -272,17 +339,38 @@ namespace WpfBasler
                             // convert image from basler IImage to OpenCV Mat
                             Mat img = convertIImage2Mat(grabResult);
                             // convert image from BayerBG to RGB
-                            Cv2.CvtColor(img, img, ColorConversionCodes.BayerBG2RGB);
+                            Cv2.CvtColor(img, img, ColorConversionCodes.BayerBG2GRAY);  //BayerBG2RGB);
 
                             Mat histo = new Mat();
-                            Mat dst = img.Clone();
+                            Mat dst = img.Clone();                        
 
-                            if (isHoughLines)
-                                dst = houghLines(img);
+                            if (isClahe)
+                            {
+                                CLAHE clahe = Cv2.CreateCLAHE();
+                                clahe = Cv2.CreateCLAHE(clipLimit: 2.0, tileGridSize: new OpenCvSharp.Size(16.0, 16.0));
+                                clahe.Apply(dst, dst);
+                            }
+
+                            if (isEqualize)
+                                Cv2.EqualizeHist(dst, dst);                            
+
+                            Mat kernel = Cv2.GetStructuringElement(MorphShapes.Ellipse, new OpenCvSharp.Size(3, 3));
+                            Cv2.GaussianBlur(dst, dst, new OpenCvSharp.Size(3, 3), 3, 3, BorderTypes.Reflect101);
+                            Cv2.Erode(dst, dst, kernel, new OpenCvSharp.Point(-1, -1), valueErode, BorderTypes.Reflect101, new Scalar(0));
 
                             histo = histogram(dst);
 
+                            if (isHeatMaps)
+                                Cv2.ApplyColorMap(dst, dst, ColormapTypes.Rainbow);
+
+                            if (isMinEnclosing)
+                                dst = MinEnclosing(dst);                                                                                
+
+                            if (isHoughLines)
+                                dst = houghLines(dst);
+
                             Cv2.Resize(dst, dst, new OpenCvSharp.Size(1920, 1374), 0, 0, InterpolationFlags.Linear);
+                            
                             if (isWrite)
                                 videoWriter.Write(dst);
                             // resize image  to fit the imageBox
@@ -362,7 +450,7 @@ namespace WpfBasler
 
         private void btnOneShot_Click(object sender, RoutedEventArgs e)
         {
-            string filename = DateTime.Now.ToString("M.dd-HH.mm.ss") + ".jpg";
+            string filename = "D:\\save\\" + DateTime.Now.ToString("M.dd-HH.mm.ss") + ".jpg";
             snapImage(filename, 2748, 3840);
         }
 
@@ -398,42 +486,61 @@ namespace WpfBasler
         private void checkSave_Checked(object sender, RoutedEventArgs e)
         {
             isWrite = true;
+        }       
+
+        private void sliderErode_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            valueErode = (int)sliderErode.Value;
         }
 
-        private void radioHoughLines_Checked(object sender, RoutedEventArgs e)
+        private void checkClahe_Checked(object sender, RoutedEventArgs e)
+        {
+            isClahe = true;
+        }
+
+        private void checkClahe_Unchecked(object sender, RoutedEventArgs e)
+        {
+            isClahe = false;
+        }
+
+        private void checkEqual_Checked(object sender, RoutedEventArgs e)
+        {
+            isEqualize = true;
+        }
+
+        private void checkEqual_Unchecked(object sender, RoutedEventArgs e)
+        {
+            isEqualize = false;
+        }        
+
+        private void radioHoughlines_Checked(object sender, RoutedEventArgs e)
         {
             isHoughLines = true;
         }
 
-        private void radioHoughCircles_Checked(object sender, RoutedEventArgs e)
-        {
-            Mat src = Cv2.ImRead("colorball.png");
-            Mat gray = new Mat();
-            Mat hist = new Mat();
-            Mat result = Mat.Ones(new OpenCvSharp.Size(256, src.Height), MatType.CV_8UC1);
-            Mat dst = new Mat();
-
-            Cv2.CvtColor(src, gray, ColorConversionCodes.BGR2GRAY);
-            Cv2.CalcHist(new Mat[] { gray }, new int[] { 0 }, null, hist, 1, new int[] { 256 }, new Rangef[] { new Rangef(0, 256) });
-            Cv2.Normalize(hist, hist, 0, 255, NormTypes.MinMax);
-
-            for (int i = 0; i < hist.Rows; i++)
-            {
-                Cv2.Line(result, new OpenCvSharp.Point(i, src.Height), new OpenCvSharp.Point(i, src.Height - hist.Get<float>(i)), Scalar.White);
-            }
-
-            Cv2.HConcat(new Mat[] { gray, result }, dst);
-            Cv2.ImShow("dst", dst);
-        }
-
-        private void radioHoughLines_Unchecked(object sender, RoutedEventArgs e)
+        private void radioHoughlines_Unchecked(object sender, RoutedEventArgs e)
         {
             isHoughLines = false;
         }
 
-        private void radioHoughCircles_Unchecked(object sender, RoutedEventArgs e)
+        private void radioHeatmaps_Checked(object sender, RoutedEventArgs e)
         {
+            isHeatMaps = true;
+        }
 
+        private void radioHeatmaps_Unchecked(object sender, RoutedEventArgs e)
+        {
+            isHeatMaps = false;
+        }
+
+        private void radioMinenclosing_Checked(object sender, RoutedEventArgs e)
+        {
+            isMinEnclosing = true;
+        }
+
+        private void radioMinenclosing_Unchecked(object sender, RoutedEventArgs e)
+        {
+            isMinEnclosing = false;
         }
     }
 }
