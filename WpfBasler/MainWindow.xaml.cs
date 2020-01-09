@@ -48,7 +48,7 @@ namespace WpfBasler
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            radioHoughlines.IsChecked = true;
+            
         }
         
         public void BaslerCamera(string ip)
@@ -183,12 +183,10 @@ namespace WpfBasler
 
         private Mat histogram(Mat src)
         {
-            Mat gray = src.Clone();  //new Mat();
             Mat hist = new Mat();
             Mat result = Mat.Ones(new OpenCvSharp.Size(256, src.Height), MatType.CV_8UC1);
 
-            //Cv2.CvtColor(src, gray, ColorConversionCodes.BGR2GRAY);
-            Cv2.CalcHist(new Mat[] { gray }, new int[] { 0 }, null, hist, 1, new int[] { 256 }, new Rangef[] { new Rangef(0, 256) });
+            Cv2.CalcHist(new Mat[] { src }, new int[] { 0 }, null, hist, 1, new int[] { 256 }, new Rangef[] { new Rangef(0, 256) });
             Cv2.Normalize(hist, hist, 0, 255, NormTypes.MinMax);
 
             for (int i = 0; i < hist.Rows; i++)
@@ -201,7 +199,6 @@ namespace WpfBasler
 
         private Mat houghLines(Mat img)
         {
-            Mat gray = img.Clone();  //new Mat();
             Mat binary = new Mat();
             Mat morp = new Mat();
             Mat canny = new Mat();
@@ -211,8 +208,7 @@ namespace WpfBasler
 
             Mat kernel = Cv2.GetStructuringElement(MorphShapes.Rect, new OpenCvSharp.Size(3, 3));
 
-            //Cv2.CvtColor(img, gray, ColorConversionCodes.BGR2GRAY);
-            Cv2.Threshold(gray, binary, 150, 255, ThresholdTypes.Binary);
+            Cv2.Threshold(img, binary, 150, 255, ThresholdTypes.Binary);
             Cv2.Dilate(binary, morp, kernel, new OpenCvSharp.Point(-1, -1));
             Cv2.Erode(morp, morp, kernel, new OpenCvSharp.Point(-1, -1), 3);
             Cv2.Dilate(morp, morp, kernel, new OpenCvSharp.Point(-1, -1), 2);
@@ -252,7 +248,6 @@ namespace WpfBasler
             OpenCvSharp.Point[][] contours;
             HierarchyIndex[] hierarchy;
 
-            //Cv2.CvtColor(img, img, ColorConversionCodes.BGR2GRAY);
             Cv2.Threshold(img, binary, 230, 255, ThresholdTypes.Binary);
             Cv2.MorphologyEx(binary, morp, MorphTypes.Close, kernel, new OpenCvSharp.Point(-1, -1), 2);
             Cv2.BitwiseNot(morp, image);
@@ -339,7 +334,7 @@ namespace WpfBasler
                             // convert image from basler IImage to OpenCV Mat
                             Mat img = convertIImage2Mat(grabResult);
                             // convert image from BayerBG to RGB
-                            Cv2.CvtColor(img, img, ColorConversionCodes.BayerBG2GRAY);  //BayerBG2RGB);
+                            Cv2.CvtColor(img, img, ColorConversionCodes.BayerBG2GRAY);  
 
                             Mat histo = new Mat();
                             Mat dst = img.Clone();                        
