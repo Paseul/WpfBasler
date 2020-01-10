@@ -33,9 +33,10 @@ namespace WpfBasler
         private PixelDataConverter converter = new PixelDataConverter();
         Dispatcher dispatcher = Application.Current.Dispatcher;
         OpenCvSharp.VideoWriter videoWriter = new OpenCvSharp.VideoWriter();
+        OpenCvSharp.VideoWriter histoWriter = new OpenCvSharp.VideoWriter();
+        OpenCvSharp.VideoWriter heatmapWriter = new OpenCvSharp.VideoWriter();
         bool isWrite = false;
         bool isHoughLines = false;
-        bool isHeatMaps = false;
         bool isMinEnclosing = false;
         bool isClahe = false;
         bool isEqualize = false;
@@ -85,7 +86,7 @@ namespace WpfBasler
                         Cv2.CvtColor(img, img, ColorConversionCodes.BayerBG2GRAY);
 
                         Mat histo = new Mat();
-                        Mat binary = new Mat();
+                        Mat heatmap = new Mat();
                         Mat dst = img.Clone();
 
                         if (isClahe)
@@ -101,26 +102,29 @@ namespace WpfBasler
                         Mat kernel = Cv2.GetStructuringElement(MorphShapes.Ellipse, new OpenCvSharp.Size(9, 9));
                         Cv2.Erode(dst, dst, kernel, new OpenCvSharp.Point(-1, -1), (int)sliderErode.Value, BorderTypes.Reflect101, new Scalar(0));
 
-                        if (isHeatMaps)
-                            Cv2.ApplyColorMap(dst, dst, ColormapTypes.Rainbow);
+                        Cv2.ApplyColorMap(dst, heatmap, ColormapTypes.Rainbow);
 
                         histo = histogram(dst);
+
+                        if (isMinEnclosing)
+                            dst = MinEnclosing(dst);
 
                         if (isHoughLines)
                             dst = houghLines(dst);
 
                         // save image
-                        Cv2.ImWrite(path, dst);
+                        Cv2.ImWrite(path + ".jpg", dst);
+                        Cv2.ImWrite(path + ".histo.jpg", histo);
+                        Cv2.ImWrite(path + ".heatmap.jpg", heatmap);
 
                         // resize image  to fit the imageBox
                         Cv2.Resize(dst, dst, new OpenCvSharp.Size(960, 687), 0, 0, InterpolationFlags.Linear);
-                        Cv2.Resize(histo, histo, new OpenCvSharp.Size(256, 687), 0, 0, InterpolationFlags.Linear);
+                        Cv2.Resize(heatmap, heatmap, new OpenCvSharp.Size(256, 183), 0, 0, InterpolationFlags.Linear);
 
                         // copy processed image to imgCamera.Source
                         imgCamera.Source = dst.ToWriteableBitmap(PixelFormats.Gray8);
                         imgHisto.Source = histo.ToWriteableBitmap(PixelFormats.Gray8);
-
-                        
+                        imgHeatmap.Source = heatmap.ToWriteableBitmap(PixelFormats.Bgr24);
                     }
                     else
                     {
@@ -184,14 +188,14 @@ namespace WpfBasler
         private Mat histogram(Mat src)
         {
             Mat hist = new Mat();
-            Mat result = Mat.Ones(new OpenCvSharp.Size(256, src.Height), MatType.CV_8UC1);
+            Mat result = Mat.Ones(new OpenCvSharp.Size(256, 300), MatType.CV_8UC1);
 
             Cv2.CalcHist(new Mat[] { src }, new int[] { 0 }, null, hist, 1, new int[] { 256 }, new Rangef[] { new Rangef(0, 256) });
             Cv2.Normalize(hist, hist, 0, 255, NormTypes.MinMax);
 
             for (int i = 0; i < hist.Rows; i++)
             {
-                Cv2.Line(result, new OpenCvSharp.Point(i, src.Height), new OpenCvSharp.Point(i, src.Height - hist.Get<float>(i)), Scalar.White);
+                Cv2.Line(result, new OpenCvSharp.Point(i, 300), new OpenCvSharp.Point(i, 300 - hist.Get<float>(i)), Scalar.White);
             }
 
             return result;            
@@ -285,7 +289,6 @@ namespace WpfBasler
                 Cv2.PutText(dst, text, new OpenCvSharp.Point(3300, 2700), HersheyFonts.HersheyPlain, 5, Scalar.White, 5);
             }
 
-
             return dst;
         }
 
@@ -317,15 +320,25 @@ namespace WpfBasler
                 camera.Parameters[PLCamera.CenterY].SetValue(true);
 
                 camera.StreamGrabber.Start();
+
                 if (isWrite)
                 {
                     var expected = new OpenCvSharp.Size(1920, 1374);
                     string filename = "D:\\save\\" + DateTime.Now.ToString("M.dd-HH.mm.ss") + ".avi";
-                    videoWriter.Open(filename, OpenCvSharp.FourCCValues.XVID, 14, expected, true);
-                }                
+                    videoWriter.Open(filename, OpenCvSharp.FourCCValues.XVID, 14, expected, false);
+
+                    expected = new OpenCvSharp.Size(256, 300);
+                    filename = "D:\\save\\" + DateTime.Now.ToString("M.dd-HH.mm.ss") + ".histo.avi";
+                    histoWriter.Open(filename, OpenCvSharp.FourCCValues.XVID, 14, expected, false);
+
+                    expected = new OpenCvSharp.Size(1920, 1374);
+                    filename = "D:\\save\\" + DateTime.Now.ToString("M.dd-HH.mm.ss") + ".heatmap.avi";
+                    heatmapWriter.Open(filename, OpenCvSharp.FourCCValues.XVID, 14, expected, true);
+                }
+
                 while (grabbing)
                 {
-                    IGrabResult grabResult = camera.StreamGrabber.RetrieveResult(5000, TimeoutHandling.ThrowException);
+                    IGrabResult grabResult = camera.StreamGrabber.RetrieveResult(5000, TimeoutHandling.ThrowException);                    
 
                     using (grabResult)
                     {
@@ -337,6 +350,7 @@ namespace WpfBasler
                             Cv2.CvtColor(img, img, ColorConversionCodes.BayerBG2GRAY);  
 
                             Mat histo = new Mat();
+                            Mat heatmap = new Mat();
                             Mat dst = img.Clone();                        
 
                             if (isClahe)
@@ -347,7 +361,7 @@ namespace WpfBasler
                             }
 
                             if (isEqualize)
-                                Cv2.EqualizeHist(dst, dst);                            
+                                Cv2.EqualizeHist(dst, dst);
 
                             Mat kernel = Cv2.GetStructuringElement(MorphShapes.Ellipse, new OpenCvSharp.Size(3, 3));
                             Cv2.GaussianBlur(dst, dst, new OpenCvSharp.Size(3, 3), 3, 3, BorderTypes.Reflect101);
@@ -355,28 +369,36 @@ namespace WpfBasler
 
                             histo = histogram(dst);
 
-                            if (isHeatMaps)
-                                Cv2.ApplyColorMap(dst, dst, ColormapTypes.Rainbow);
+                            Cv2.ApplyColorMap(dst, heatmap, ColormapTypes.Rainbow);                                                
 
                             if (isMinEnclosing)
                                 dst = MinEnclosing(dst);                                                                                
 
                             if (isHoughLines)
-                                dst = houghLines(dst);
-
-                            Cv2.Resize(dst, dst, new OpenCvSharp.Size(1920, 1374), 0, 0, InterpolationFlags.Linear);
+                                dst = houghLines(dst);                            
                             
                             if (isWrite)
+                            {
+                                Cv2.Resize(dst, dst, new OpenCvSharp.Size(1920, 1374), 0, 0, InterpolationFlags.Linear);
+                                Cv2.Resize(heatmap, heatmap, new OpenCvSharp.Size(1920, 1374), 0, 0, InterpolationFlags.Linear);
+
                                 videoWriter.Write(dst);
+                                histoWriter.Write(histo);
+                                heatmapWriter.Write(heatmap);
+                            }                     
+                                
                             // resize image  to fit the imageBox
                             Cv2.Resize(dst, dst, new OpenCvSharp.Size(960, 687), 0, 0, InterpolationFlags.Linear);
-                            Cv2.Resize(histo, histo, new OpenCvSharp.Size(256, 687), 0, 0, InterpolationFlags.Linear);
+                            Cv2.Resize(heatmap, heatmap, new OpenCvSharp.Size(256, 183), 0, 0, InterpolationFlags.Linear);
+
                             // copy processed image to imagebox.image
                             Bitmap bitmap = OpenCvSharp.Extensions.BitmapConverter.ToBitmap(dst);
                             Bitmap bitmapHisto = OpenCvSharp.Extensions.BitmapConverter.ToBitmap(histo);
+                            Bitmap bitmapHeatmap = OpenCvSharp.Extensions.BitmapConverter.ToBitmap(heatmap);
 
                             BitmapToImageSource(bitmap);
                             BitmapHistoToImageSource(bitmapHisto);
+                            BitmapHeatmapToImageSource(bitmapHeatmap);
                         }
                         else
                         {
@@ -387,6 +409,8 @@ namespace WpfBasler
                     Thread.Sleep(snap_wait);
                 }
                 videoWriter.Release();
+                histoWriter.Release();
+                heatmapWriter.Release();
                 camera.StreamGrabber.Stop();
                 camera.Close();
 
@@ -438,6 +462,25 @@ namespace WpfBasler
             }));
         }
 
+        void BitmapHeatmapToImageSource(Bitmap bitmap)
+        {
+            //UI thread에 접근하기 위해 dispatcher 사용
+            dispatcher.BeginInvoke((Action)(() =>
+            {
+                using (MemoryStream memory = new MemoryStream())
+                {
+                    bitmap.Save(memory, System.Drawing.Imaging.ImageFormat.Bmp);
+                    memory.Position = 0;
+                    BitmapImage bitmapimage = new BitmapImage();
+                    bitmapimage.BeginInit();
+                    bitmapimage.CacheOption = BitmapCacheOption.OnLoad;
+                    bitmapimage.StreamSource = memory;
+                    bitmapimage.EndInit();
+                    imgHeatmap.Source = bitmapimage;
+                }
+            }));
+        }
+
         private void btnConnect_Click(object sender, RoutedEventArgs e)
         {
             BaslerCamera("192.168.1.6");
@@ -445,7 +488,7 @@ namespace WpfBasler
 
         private void btnOneShot_Click(object sender, RoutedEventArgs e)
         {
-            string filename = "D:\\save\\" + DateTime.Now.ToString("M.dd-HH.mm.ss") + ".jpg";
+            string filename = "D:\\save\\" + DateTime.Now.ToString("M.dd-HH.mm.ss");
             snapImage(filename, 2748, 3840);
         }
 
@@ -470,7 +513,6 @@ namespace WpfBasler
         private void btnDisConnect_Click(object sender, RoutedEventArgs e)
         {
             grabbing = false;
-            isWrite = false;
         }
 
         private void sliderGain_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
@@ -481,7 +523,12 @@ namespace WpfBasler
         private void checkSave_Checked(object sender, RoutedEventArgs e)
         {
             isWrite = true;
-        }       
+        }
+
+        private void checkSave_Unchecked(object sender, RoutedEventArgs e)
+        {
+            isWrite = false;
+        }
 
         private void sliderErode_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
@@ -518,16 +565,6 @@ namespace WpfBasler
             isHoughLines = false;
         }
 
-        private void radioHeatmaps_Checked(object sender, RoutedEventArgs e)
-        {
-            isHeatMaps = true;
-        }
-
-        private void radioHeatmaps_Unchecked(object sender, RoutedEventArgs e)
-        {
-            isHeatMaps = false;
-        }
-
         private void radioMinenclosing_Checked(object sender, RoutedEventArgs e)
         {
             isMinEnclosing = true;
@@ -537,5 +574,7 @@ namespace WpfBasler
         {
             isMinEnclosing = false;
         }
+
+        
     }
 }
