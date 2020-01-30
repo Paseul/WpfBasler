@@ -20,7 +20,6 @@ using System.IO;
 using System.Drawing;
 using System.Windows.Threading;
 
-
 namespace WpfBasler
 {
     /// <summary>
@@ -41,6 +40,7 @@ namespace WpfBasler
         bool isClahe = false;
         bool isEqualize = false;
         int valueErode;
+        int valueRange;
 
         public MainWindow()
         {
@@ -89,6 +89,12 @@ namespace WpfBasler
                         Mat heatmap = new Mat();
                         Mat dst = img.Clone();
 
+                        Cv2.ApplyColorMap(dst, heatmap, ColormapTypes.Rainbow);
+
+                        Cv2.InRange(dst, valueRange, 255, dst);
+
+                        dst = fourier(img);
+
                         if (isClahe)
                         {
                             CLAHE clahe = Cv2.CreateCLAHE();
@@ -102,27 +108,25 @@ namespace WpfBasler
                         Mat kernel = Cv2.GetStructuringElement(MorphShapes.Ellipse, new OpenCvSharp.Size(9, 9));
                         Cv2.Erode(dst, dst, kernel, new OpenCvSharp.Point(-1, -1), (int)sliderErode.Value, BorderTypes.Reflect101, new Scalar(0));
 
-                        Cv2.ApplyColorMap(dst, heatmap, ColormapTypes.Rainbow);
-
                         histo = histogram(dst);
 
                         if (isMinEnclosing)
                             dst = MinEnclosing(dst);
 
                         if (isHoughLines)
-                            dst = houghLines(dst);
+                            dst = houghLines(dst);                        
 
                         // save image
-                        Cv2.ImWrite(path + ".jpg", dst);
-                        Cv2.ImWrite(path + ".histo.jpg", histo);
-                        Cv2.ImWrite(path + ".heatmap.jpg", heatmap);
+                        //Cv2.ImWrite(path + ".jpg", dst);
+                        //Cv2.ImWrite(path + ".histo.jpg", histo);
+                        //Cv2.ImWrite(path + ".heatmap.jpg", heatmap);
 
                         // resize image  to fit the imageBox
                         Cv2.Resize(dst, dst, new OpenCvSharp.Size(960, 687), 0, 0, InterpolationFlags.Linear);
                         Cv2.Resize(heatmap, heatmap, new OpenCvSharp.Size(256, 183), 0, 0, InterpolationFlags.Linear);
 
                         // copy processed image to imgCamera.Source
-                        imgCamera.Source = dst.ToWriteableBitmap(PixelFormats.Gray8);
+                        imgCamera.Source = dst.ToWriteableBitmap(PixelFormats.Gray32Float);
                         imgHisto.Source = histo.ToWriteableBitmap(PixelFormats.Gray8);
                         imgHeatmap.Source = heatmap.ToWriteableBitmap(PixelFormats.Bgr24);
                     }
@@ -183,6 +187,71 @@ namespace WpfBasler
             converter.OutputPixelFormat = PixelType.BGR8packed;
             byte[] buffer = grabResult.PixelData as byte[];
             return new Mat(grabResult.Height, grabResult.Width, MatType.CV_8U, buffer);
+        }
+
+        private Mat fourier(Mat img)
+        {
+            Mat padded = new Mat();
+            int m = Cv2.GetOptimalDFTSize(img.Rows);
+            int n = Cv2.GetOptimalDFTSize(img.Cols); // on the border add zero values
+            Cv2.CopyMakeBorder(img, padded, 0, m - img.Rows, 0, n - img.Cols, BorderTypes.Constant, Scalar.All(0));
+
+            // Add to the expanded another plane with zeros
+            Mat paddedF32 = new Mat();
+            padded.ConvertTo(paddedF32, MatType.CV_32F);
+            Mat[] planes = { paddedF32, Mat.Zeros(padded.Size(), MatType.CV_32F) };
+            Mat complex = new Mat();
+            Cv2.Merge(planes, complex);
+
+            // this way the result may fit in the source matrix
+            Mat dft = new Mat();
+            Cv2.Dft(complex, dft);
+
+            // compute the magnitude and switch to logarithmic scale
+            // => log(1 + sqrt(Re(DFT(I))^2 + Im(DFT(I))^2))
+            Mat[] dftPlanes;
+            Cv2.Split(dft, out dftPlanes);  // planes[0] = Re(DFT(I), planes[1] = Im(DFT(I))
+
+            // planes[0] = magnitude
+            Mat magnitude = new Mat();
+            Cv2.Magnitude(dftPlanes[0], dftPlanes[1], magnitude);
+
+            magnitude += Scalar.All(1);  // switch to logarithmic scale
+            Cv2.Log(magnitude, magnitude);
+
+            // crop the spectrum, if it has an odd number of rows or columns
+            Mat spectrum = magnitude[
+                new OpenCvSharp.Rect(0, 0, magnitude.Cols & -2, magnitude.Rows & -2)];
+
+            // rearrange the quadrants of Fourier image  so that the origin is at the image center
+            int cx = spectrum.Cols / 2;
+            int cy = spectrum.Rows / 2;
+
+            Mat q0 = new Mat(spectrum, new OpenCvSharp.Rect(0, 0, cx, cy));   // Top-Left - Create a ROI per quadrant
+            Mat q1 = new Mat(spectrum, new OpenCvSharp.Rect(cx, 0, cx, cy));  // Top-Right
+            Mat q2 = new Mat(spectrum, new OpenCvSharp.Rect(0, cy, cx, cy));  // Bottom-Left
+            Mat q3 = new Mat(spectrum, new OpenCvSharp.Rect(cx, cy, cx, cy)); // Bottom-Right
+
+            // swap quadrants (Top-Left with Bottom-Right)
+            Mat tmp = new Mat();
+            q0.CopyTo(tmp);
+            q3.CopyTo(q0);
+            tmp.CopyTo(q3);
+
+            // swap quadrant (Top-Right with Bottom-Left)
+            q1.CopyTo(tmp);
+            q2.CopyTo(q1);
+            tmp.CopyTo(q2);
+
+            // Transform the matrix with float values into a
+            Cv2.Normalize(spectrum, spectrum, 0, 1, NormTypes.MinMax);
+
+            // calculating the idft
+            Mat inverseTransform = new Mat();
+            Cv2.Dft(dft, inverseTransform, DftFlags.Inverse | DftFlags.RealOutput);
+            Cv2.Normalize(inverseTransform, inverseTransform, 0, 1, NormTypes.MinMax);
+
+            return inverseTransform;
         }
 
         private Mat histogram(Mat src)
@@ -347,12 +416,20 @@ namespace WpfBasler
                             // convert image from basler IImage to OpenCV Mat
                             Mat img = convertIImage2Mat(grabResult);
                             // convert image from BayerBG to RGB
-                            Cv2.CvtColor(img, img, ColorConversionCodes.BayerBG2GRAY);  
+                            Cv2.CvtColor(img, img, ColorConversionCodes.BayerBG2GRAY);                            
 
                             Mat histo = new Mat();
                             Mat heatmap = new Mat();
-                            Mat dst = img.Clone();                        
+                            Mat dst = img.Clone();
 
+                            histo = histogram(dst);
+
+                            Cv2.ApplyColorMap(dst, heatmap, ColormapTypes.Rainbow);
+
+                            dst = fourier(img);
+
+                            //Cv2.InRange(dst, valueRange, 255, dst);
+                            
                             if (isClahe)
                             {
                                 CLAHE clahe = Cv2.CreateCLAHE();
@@ -367,9 +444,7 @@ namespace WpfBasler
                             Cv2.GaussianBlur(dst, dst, new OpenCvSharp.Size(3, 3), 3, 3, BorderTypes.Reflect101);
                             Cv2.Erode(dst, dst, kernel, new OpenCvSharp.Point(-1, -1), valueErode, BorderTypes.Reflect101, new Scalar(0));
 
-                            histo = histogram(dst);
-
-                            Cv2.ApplyColorMap(dst, heatmap, ColormapTypes.Rainbow);                                                
+                                                                   
 
                             if (isMinEnclosing)
                                 dst = MinEnclosing(dst);                                                                                
@@ -390,12 +465,12 @@ namespace WpfBasler
                             // resize image  to fit the imageBox
                             Cv2.Resize(dst, dst, new OpenCvSharp.Size(960, 687), 0, 0, InterpolationFlags.Linear);
                             Cv2.Resize(heatmap, heatmap, new OpenCvSharp.Size(256, 183), 0, 0, InterpolationFlags.Linear);
-
+  
                             // copy processed image to imagebox.image
                             Bitmap bitmap = OpenCvSharp.Extensions.BitmapConverter.ToBitmap(dst);
                             Bitmap bitmapHisto = OpenCvSharp.Extensions.BitmapConverter.ToBitmap(histo);
                             Bitmap bitmapHeatmap = OpenCvSharp.Extensions.BitmapConverter.ToBitmap(heatmap);
-
+                            
                             BitmapToImageSource(bitmap);
                             BitmapHistoToImageSource(bitmapHisto);
                             BitmapHeatmapToImageSource(bitmapHeatmap);
@@ -421,6 +496,14 @@ namespace WpfBasler
                     camera.Close();
 
                 System.Windows.MessageBox.Show("Exception: {0}" + exception.Message);
+            }
+        }
+
+        private static Bitmap MatToBitmap(Mat mat)
+        {
+            using (var ms = mat.ToMemoryStream())
+            {
+                return (Bitmap)System.Drawing.Image.FromStream(ms);
             }
         }
 
@@ -575,6 +658,9 @@ namespace WpfBasler
             isMinEnclosing = false;
         }
 
-        
+        private void sliderRange_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            valueRange = (int)sliderRange.Value;
+        }
     }
 }

@@ -25,6 +25,9 @@
         <CheckBox x:Name="checkEqual" Content="EqualizeHist" HorizontalAlignment="Left" Margin="96,161,0,0" VerticalAlignment="Top" Checked="checkEqual_Checked" Unchecked="checkEqual_Unchecked"/>
         <RadioButton x:Name="radioHoughlines" Content="HoughLines" HorizontalAlignment="Left" Margin="10,58,0,0" VerticalAlignment="Top" RenderTransformOrigin="-0.081,0.6" Checked="radioHoughlines_Checked" Unchecked="radioHoughlines_Unchecked"/>
         <RadioButton x:Name="radioMinenclosing" Content="MinEnclosing" HorizontalAlignment="Left" Margin="98,58,0,0" VerticalAlignment="Top" Checked="radioMinenclosing_Checked" Unchecked="radioMinenclosing_Unchecked"/>
+        <TextBlock x:Name="txtRange" HorizontalAlignment="Left" Margin="42,249,0,0" TextWrapping="Wrap" Text="Range" VerticalAlignment="Top"/>
+        <Slider x:Name="sliderRange" TickPlacement="BottomRight" TickFrequency="1" Minimum="230" Maximum="255" HorizontalAlignment="Left" Margin="97,249,0,0" VerticalAlignment="Top" Width="75" ValueChanged="sliderRange_ValueChanged"/>
+        <TextBox Text="{Binding Value, ElementName=sliderRange, UpdateSourceTrigger=PropertyChanged}" HorizontalAlignment="Left" Height="24" Margin="177,246,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="40" RenderTransformOrigin="0.525,1.917"/>
 
     </Grid>
 </Window>
