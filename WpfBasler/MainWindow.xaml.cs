@@ -89,11 +89,31 @@ namespace WpfBasler
                         Mat heatmap = new Mat();
                         Mat dst = img.Clone();
 
+                        // ApplyColorMap
                         Cv2.ApplyColorMap(dst, heatmap, ColormapTypes.Rainbow);
 
-                        Cv2.InRange(dst, valueRange, 255, dst);
+                        // Draw histogram
+                        histo = histogram(dst);
 
+                        // Image Ranging
+                        //Cv2.InRange(dst, valueRange, 255, dst);
+
+                        // save image
+                        Cv2.ImWrite(path + ".origin.jpg", dst);
+                        Cv2.ImWrite(path + ".histo.jpg", histo);
+                        Cv2.ImWrite(path + ".heatmap.jpg", heatmap);
+
+                        // Apply Fourier Transform
                         dst = fourier(img);
+
+                        // Save the bitmap into a file.
+                        WriteableBitmap wb = dst.ToWriteableBitmap(PixelFormats.Gray32Float);
+                        using (FileStream stream = new FileStream(path + "fourier.png", FileMode.Create))
+                        {
+                            PngBitmapEncoder encoder = new PngBitmapEncoder();
+                            encoder.Frames.Add(BitmapFrame.Create(wb));
+                            encoder.Save(stream);
+                        }
 
                         if (isClahe)
                         {
@@ -106,26 +126,19 @@ namespace WpfBasler
                             Cv2.EqualizeHist(dst, dst);
 
                         Mat kernel = Cv2.GetStructuringElement(MorphShapes.Ellipse, new OpenCvSharp.Size(9, 9));
-                        Cv2.Erode(dst, dst, kernel, new OpenCvSharp.Point(-1, -1), (int)sliderErode.Value, BorderTypes.Reflect101, new Scalar(0));
-
-                        histo = histogram(dst);
+                        Cv2.Erode(dst, dst, kernel, new OpenCvSharp.Point(-1, -1), (int)sliderErode.Value, BorderTypes.Reflect101, new Scalar(0));                                       
 
                         if (isMinEnclosing)
                             dst = MinEnclosing(dst);
 
                         if (isHoughLines)
-                            dst = houghLines(dst);                        
-
-                        // save image
-                        //Cv2.ImWrite(path + ".jpg", dst);
-                        //Cv2.ImWrite(path + ".histo.jpg", histo);
-                        //Cv2.ImWrite(path + ".heatmap.jpg", heatmap);
+                            dst = houghLines(dst);                                                                      
 
                         // resize image  to fit the imageBox
                         Cv2.Resize(dst, dst, new OpenCvSharp.Size(960, 687), 0, 0, InterpolationFlags.Linear);
                         Cv2.Resize(heatmap, heatmap, new OpenCvSharp.Size(256, 183), 0, 0, InterpolationFlags.Linear);
 
-                        // copy processed image to imgCamera.Source
+                        // copy processed image to imgCamera.Source 
                         imgCamera.Source = dst.ToWriteableBitmap(PixelFormats.Gray32Float);
                         imgHisto.Source = histo.ToWriteableBitmap(PixelFormats.Gray8);
                         imgHeatmap.Source = heatmap.ToWriteableBitmap(PixelFormats.Bgr24);
@@ -147,7 +160,7 @@ namespace WpfBasler
 
                 return false;
             }
-        }
+        }        
 
         private IGrabResult snap(int height = 0, int width = 0)
         {
@@ -426,9 +439,7 @@ namespace WpfBasler
 
                             Cv2.ApplyColorMap(dst, heatmap, ColormapTypes.Rainbow);
 
-                            dst = fourier(img);
-
-                            //Cv2.InRange(dst, valueRange, 255, dst);
+                            Cv2.InRange(dst, valueRange, 255, dst);
                             
                             if (isClahe)
                             {
