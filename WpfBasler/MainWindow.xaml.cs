@@ -20,6 +20,7 @@ using System.IO;
 using System.Drawing;
 using System.Windows.Threading;
 
+
 namespace WpfBasler
 {
     /// <summary>
@@ -32,6 +33,7 @@ namespace WpfBasler
         private PixelDataConverter converter = new PixelDataConverter();
         Dispatcher dispatcher = Application.Current.Dispatcher;
         OpenCvSharp.VideoWriter videoWriter = new OpenCvSharp.VideoWriter();
+        OpenCvSharp.VideoWriter fourierWriter = new OpenCvSharp.VideoWriter();
         OpenCvSharp.VideoWriter histoWriter = new OpenCvSharp.VideoWriter();
         OpenCvSharp.VideoWriter heatmapWriter = new OpenCvSharp.VideoWriter();
         bool isWrite = false;
@@ -41,7 +43,7 @@ namespace WpfBasler
         bool isEqualize = false;
         int valueErode;
         int valueRange;
-
+        
         public MainWindow()
         {
             InitializeComponent();
@@ -96,24 +98,16 @@ namespace WpfBasler
                         histo = histogram(dst);
 
                         // Image Ranging
-                        //Cv2.InRange(dst, valueRange, 255, dst);
-
-                        // save image
-                        Cv2.ImWrite(path + ".origin.jpg", dst);
-                        Cv2.ImWrite(path + ".histo.jpg", histo);
-                        Cv2.ImWrite(path + ".heatmap.jpg", heatmap);
+                        //Cv2.InRange(dst, valueRange, 255, dst);                       
 
                         // Apply Fourier Transform
                         dst = fourier(img);
 
-                        // Save the bitmap into a file.
-                        WriteableBitmap wb = dst.ToWriteableBitmap(PixelFormats.Gray32Float);
-                        using (FileStream stream = new FileStream(path + "fourier.png", FileMode.Create))
-                        {
-                            PngBitmapEncoder encoder = new PngBitmapEncoder();
-                            encoder.Frames.Add(BitmapFrame.Create(wb));
-                            encoder.Save(stream);
-                        }
+                        // save image
+                        Cv2.ImWrite(path + ".origin.jpg", img);
+                        Cv2.ImWrite(path + ".histo.jpg", histo);
+                        Cv2.ImWrite(path + ".heatmap.jpg", heatmap);
+                        Cv2.ImWrite(path + ".fourier.jpg", dst);
 
                         if (isClahe)
                         {
@@ -139,7 +133,7 @@ namespace WpfBasler
                         Cv2.Resize(heatmap, heatmap, new OpenCvSharp.Size(256, 183), 0, 0, InterpolationFlags.Linear);
 
                         // copy processed image to imgCamera.Source 
-                        imgCamera.Source = dst.ToWriteableBitmap(PixelFormats.Gray32Float);
+                        imgCamera.Source = dst.ToWriteableBitmap(PixelFormats.Gray8);
                         imgHisto.Source = histo.ToWriteableBitmap(PixelFormats.Gray8);
                         imgHeatmap.Source = heatmap.ToWriteableBitmap(PixelFormats.Bgr24);
                     }
@@ -263,6 +257,10 @@ namespace WpfBasler
             Mat inverseTransform = new Mat();
             Cv2.Dft(dft, inverseTransform, DftFlags.Inverse | DftFlags.RealOutput);
             Cv2.Normalize(inverseTransform, inverseTransform, 0, 1, NormTypes.MinMax);
+
+            double minVal = 0.0, maxVal = 0.0;
+            Cv2.MinMaxIdx(inverseTransform, out minVal, out maxVal);
+            Cv2.ConvertScaleAbs(inverseTransform, inverseTransform, 255.0 / (maxVal - minVal), -minVal * 255.0 / (maxVal - minVal));
 
             return inverseTransform;
         }
@@ -409,6 +407,10 @@ namespace WpfBasler
                     string filename = "D:\\save\\" + DateTime.Now.ToString("M.dd-HH.mm.ss") + ".avi";
                     videoWriter.Open(filename, OpenCvSharp.FourCCValues.XVID, 14, expected, false);
 
+                    expected = new OpenCvSharp.Size(1920, 1374);
+                    filename = "D:\\save\\" + DateTime.Now.ToString("M.dd-HH.mm.ss") + ".fourier.avi";
+                    fourierWriter.Open(filename, OpenCvSharp.FourCCValues.XVID, 14, expected, false);
+
                     expected = new OpenCvSharp.Size(256, 300);
                     filename = "D:\\save\\" + DateTime.Now.ToString("M.dd-HH.mm.ss") + ".histo.avi";
                     histoWriter.Open(filename, OpenCvSharp.FourCCValues.XVID, 14, expected, false);
@@ -439,7 +441,9 @@ namespace WpfBasler
 
                             Cv2.ApplyColorMap(dst, heatmap, ColormapTypes.Rainbow);
 
-                            Cv2.InRange(dst, valueRange, 255, dst);
+                            dst = fourier(img);
+
+                            // Cv2.InRange(dst, valueRange, 255, dst);
                             
                             if (isClahe)
                             {
@@ -453,22 +457,22 @@ namespace WpfBasler
 
                             Mat kernel = Cv2.GetStructuringElement(MorphShapes.Ellipse, new OpenCvSharp.Size(3, 3));
                             Cv2.GaussianBlur(dst, dst, new OpenCvSharp.Size(3, 3), 3, 3, BorderTypes.Reflect101);
-                            Cv2.Erode(dst, dst, kernel, new OpenCvSharp.Point(-1, -1), valueErode, BorderTypes.Reflect101, new Scalar(0));
-
-                                                                   
+                            Cv2.Erode(dst, dst, kernel, new OpenCvSharp.Point(-1, -1), valueErode, BorderTypes.Reflect101, new Scalar(0));                                                                   
 
                             if (isMinEnclosing)
                                 dst = MinEnclosing(dst);                                                                                
 
                             if (isHoughLines)
-                                dst = houghLines(dst);                            
-                            
+                                dst = houghLines(dst);                                                        
+
                             if (isWrite)
                             {
+                                Cv2.Resize(img, img, new OpenCvSharp.Size(1920, 1374), 0, 0, InterpolationFlags.Linear);
                                 Cv2.Resize(dst, dst, new OpenCvSharp.Size(1920, 1374), 0, 0, InterpolationFlags.Linear);
                                 Cv2.Resize(heatmap, heatmap, new OpenCvSharp.Size(1920, 1374), 0, 0, InterpolationFlags.Linear);
 
-                                videoWriter.Write(dst);
+                                videoWriter.Write(img);
+                                fourierWriter.Write(dst);
                                 histoWriter.Write(histo);
                                 heatmapWriter.Write(heatmap);
                             }                     
@@ -495,6 +499,7 @@ namespace WpfBasler
                     Thread.Sleep(snap_wait);
                 }
                 videoWriter.Release();
+                fourierWriter.Release();
                 histoWriter.Release();
                 heatmapWriter.Release();
                 camera.StreamGrabber.Stop();
