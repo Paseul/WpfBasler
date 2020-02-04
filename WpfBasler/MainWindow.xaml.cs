@@ -98,13 +98,16 @@ namespace WpfBasler
                         histo = histogram(dst);
 
                         // Image Ranging
-                        //Cv2.InRange(dst, valueRange, 255, dst);                       
+                        //Cv2.InRange(dst, 5, 255, dst);
+
+                        Cv2.ImWrite(path + ".origin.jpg", img);
+                        Cv2.Subtract(dst, -5, dst);
 
                         // Apply Fourier Transform
-                        dst = fourier(img);
+                        //dst = fourier(img);
 
                         // save image
-                        Cv2.ImWrite(path + ".origin.jpg", img);
+                        
                         Cv2.ImWrite(path + ".histo.jpg", histo);
                         Cv2.ImWrite(path + ".heatmap.jpg", heatmap);
                         Cv2.ImWrite(path + ".fourier.jpg", dst);
@@ -441,10 +444,11 @@ namespace WpfBasler
 
                             Cv2.ApplyColorMap(dst, heatmap, ColormapTypes.Rainbow);
 
-                            dst = fourier(img);
+                            //dst = fourier(img);
 
                             // Cv2.InRange(dst, valueRange, 255, dst);
-                            
+                            Cv2.Subtract(dst, -5, dst);
+
                             if (isClahe)
                             {
                                 CLAHE clahe = Cv2.CreateCLAHE();
