@@ -448,26 +448,65 @@ namespace WpfBasler
 
                             // Cv2.InRange(dst, valueRange, 255, dst);
                             Cv2.Subtract(dst, -5, dst);
+                            Cv2.Resize(img, img, new OpenCvSharp.Size(960, 687), 0, 0, InterpolationFlags.Linear);
+                            Cv2.Resize(dst, dst, new OpenCvSharp.Size(960, 687), 0, 0, InterpolationFlags.Linear);
 
-                            if (isClahe)
+                            OpenCvSharp.Point[][] contours;
+                            HierarchyIndex[] hierarchy;
+                            Cv2.Threshold(img, img, 100, 255, ThresholdTypes.Binary);
+                            Cv2.FindContours(img, out contours, out hierarchy, RetrievalModes.External, ContourApproximationModes.ApproxTC89L1);
+
+                            foreach (OpenCvSharp.Point[] p in contours)
                             {
-                                CLAHE clahe = Cv2.CreateCLAHE();
-                                clahe = Cv2.CreateCLAHE(clipLimit: 2.0, tileGridSize: new OpenCvSharp.Size(16.0, 16.0));
-                                clahe.Apply(dst, dst);
+                                Moments moments = Cv2.Moments(p, true);
+
+                                if (moments.M00 != 0)
+                                {
+                                    int cX = (int)(moments.M10 / moments.M00);
+                                    int cY = (int)(moments.M01 / moments.M00);
+                                    int cX2 = (int)(moments.Mu20 / moments.M00);
+                                    int cXY = (int)(moments.Mu11 / moments.M00);
+                                    int cY2 = (int)(moments.Mu02 / moments.M00);
+
+                                    double a = Math.Pow(((cX2 + cY2) + 2 * Math.Abs(cXY)), 0.5);
+                                    int dX = (int)(2 * Math.Pow(2, 0.5) * Math.Pow(((cX2 + cY2) + 2 * Math.Abs(cXY)), 0.5));
+                                    int dY = (int)(2 * Math.Pow(2, 0.5) * Math.Pow(((cX2 + cY2) - 2 * Math.Abs(cXY)), 0.5));
+
+                                    double t;
+                                    if ((cX2 - cY2) != 0)
+                                        t = 2 * cXY / (cX2 - cY2);
+                                    else
+                                        t = 0;
+
+                                    double theta = 0.5 * Math.Atan(t) * 180;
+                                    OpenCvSharp.Point center = new OpenCvSharp.Point(cX, cY);
+                                    OpenCvSharp.Size axis = new OpenCvSharp.Size(dX, dY);
+                                    Cv2.Circle(dst, cX, cY, 1, Scalar.Black);
+                                    if(dX > 0 && dY > 0)
+                                        Cv2.Ellipse(dst, center, axis, theta, 0, 360, Scalar.White);
+                                }
                             }
 
-                            if (isEqualize)
-                                Cv2.EqualizeHist(dst, dst);
+                                /*if (isClahe)
+                                {
+                                    CLAHE clahe = Cv2.CreateCLAHE();
+                                    clahe = Cv2.CreateCLAHE(clipLimit: 2.0, tileGridSize: new OpenCvSharp.Size(16.0, 16.0));
+                                    clahe.Apply(dst, dst);
+                                }
 
-                            Mat kernel = Cv2.GetStructuringElement(MorphShapes.Ellipse, new OpenCvSharp.Size(3, 3));
-                            Cv2.GaussianBlur(dst, dst, new OpenCvSharp.Size(3, 3), 3, 3, BorderTypes.Reflect101);
-                            Cv2.Erode(dst, dst, kernel, new OpenCvSharp.Point(-1, -1), valueErode, BorderTypes.Reflect101, new Scalar(0));                                                                   
+                                if (isEqualize)
+                                    Cv2.EqualizeHist(dst, dst);
 
-                            if (isMinEnclosing)
-                                dst = MinEnclosing(dst);                                                                                
+                                Mat kernel = Cv2.GetStructuringElement(MorphShapes.Ellipse, new OpenCvSharp.Size(3, 3));
+                                Cv2.GaussianBlur(dst, dst, new OpenCvSharp.Size(3, 3), 3, 3, BorderTypes.Reflect101);
+                                Cv2.Erode(dst, dst, kernel, new OpenCvSharp.Point(-1, -1), valueErode, BorderTypes.Reflect101, new Scalar(0));                                                                   
 
-                            if (isHoughLines)
-                                dst = houghLines(dst);                                                        
+                                if (isMinEnclosing)
+                                    dst = MinEnclosing(dst);                                                                                
+
+                                if (isHoughLines)
+                                    dst = houghLines(dst);                                                        
+                                */
 
                             if (isWrite)
                             {
@@ -479,10 +518,11 @@ namespace WpfBasler
                                 fourierWriter.Write(dst);
                                 histoWriter.Write(histo);
                                 heatmapWriter.Write(heatmap);
+
+                                Cv2.Resize(dst, dst, new OpenCvSharp.Size(960, 687), 0, 0, InterpolationFlags.Linear);
                             }                     
                                 
-                            // resize image  to fit the imageBox
-                            Cv2.Resize(dst, dst, new OpenCvSharp.Size(960, 687), 0, 0, InterpolationFlags.Linear);
+                            // resize image  to fit the imageBox                            
                             Cv2.Resize(heatmap, heatmap, new OpenCvSharp.Size(256, 183), 0, 0, InterpolationFlags.Linear);
   
                             // copy processed image to imagebox.image
