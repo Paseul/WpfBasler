@@ -33,7 +33,6 @@ namespace WpfBasler
         private PixelDataConverter converter = new PixelDataConverter();
         Dispatcher dispatcher = Application.Current.Dispatcher;
         OpenCvSharp.VideoWriter videoWriter = new OpenCvSharp.VideoWriter();
-        OpenCvSharp.VideoWriter fourierWriter = new OpenCvSharp.VideoWriter();
         OpenCvSharp.VideoWriter histoWriter = new OpenCvSharp.VideoWriter();
         OpenCvSharp.VideoWriter heatmapWriter = new OpenCvSharp.VideoWriter();
         bool isWrite = false;
@@ -410,10 +409,6 @@ namespace WpfBasler
                     string filename = "D:\\save\\" + DateTime.Now.ToString("M.dd-HH.mm.ss") + ".avi";
                     videoWriter.Open(filename, OpenCvSharp.FourCCValues.XVID, 14, expected, false);
 
-                    expected = new OpenCvSharp.Size(1920, 1374);
-                    filename = "D:\\save\\" + DateTime.Now.ToString("M.dd-HH.mm.ss") + ".fourier.avi";
-                    fourierWriter.Open(filename, OpenCvSharp.FourCCValues.XVID, 14, expected, false);
-
                     expected = new OpenCvSharp.Size(256, 300);
                     filename = "D:\\save\\" + DateTime.Now.ToString("M.dd-HH.mm.ss") + ".histo.avi";
                     histoWriter.Open(filename, OpenCvSharp.FourCCValues.XVID, 14, expected, false);
@@ -510,12 +505,10 @@ namespace WpfBasler
 
                             if (isWrite)
                             {
-                                Cv2.Resize(img, img, new OpenCvSharp.Size(1920, 1374), 0, 0, InterpolationFlags.Linear);
                                 Cv2.Resize(dst, dst, new OpenCvSharp.Size(1920, 1374), 0, 0, InterpolationFlags.Linear);
                                 Cv2.Resize(heatmap, heatmap, new OpenCvSharp.Size(1920, 1374), 0, 0, InterpolationFlags.Linear);
 
-                                videoWriter.Write(img);
-                                fourierWriter.Write(dst);
+                                videoWriter.Write(dst);
                                 histoWriter.Write(histo);
                                 heatmapWriter.Write(heatmap);
 
@@ -543,7 +536,6 @@ namespace WpfBasler
                     Thread.Sleep(snap_wait);
                 }
                 videoWriter.Release();
-                fourierWriter.Release();
                 histoWriter.Release();
                 heatmapWriter.Release();
                 camera.StreamGrabber.Stop();
