@@ -34,24 +34,31 @@ while camera.IsGrabbing():
 
         ret, thresh = cv2.threshold(img, 200, 255, 0)
 
-        M = cv2.moments(thresh)
-        if (M["m00"]!= 0):
-            cX = int(M["m10"] / M["m00"])
-            cY = int(M["m01"] / M["m00"])
-            cX2 = int(M["mu20"] / M["m00"])
-            cXY = int(M["mu11"] / M["m00"])
-            cY2 = int(M["mu02"] / M["m00"])
-
-            dX = int(2*(2**0.5)*((cX2 + cY2) + 2*abs(cXY))**0.5)
-            dY = int(2*(2**0.5)*((cX2 + cY2) - 2*abs(cXY))**0.5)
-            if((cX2 - cY2)!=0):
-                t = 2 * cXY / (cX2 - cY2)
-            else:
-                t = 0
+        contours, hierarchy = cv2.findContours(thresh,cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)
+        for c in contours:
+            # discard small contours
+            if (cv2.contourArea(c) < 1000):
+                continue
+            # calculate moments
+            M = cv2.moments(thresh)
             
-            theta = 0.5 * np.arctan(t) * 180
+            if (M["m00"]!= 0):
+                cX = int(M["m10"] / M["m00"])
+                cY = int(M["m01"] / M["m00"])
+                cX2 = int(M["mu20"] / M["m00"])
+                cXY = int(M["mu11"] / M["m00"])
+                cY2 = int(M["mu02"] / M["m00"])
 
-            cv2.ellipse(img, (cX, cY), (dX, dY), theta, 0, 360, (255, 255, 255))
+                dX = int((2*(2**0.5)*((cX2 + cY2) + 2*abs(cXY))**0.5).real)
+                dY = int((2*(2**0.5)*((cX2 + cY2) - 2*abs(cXY))**0.5).real)
+
+                if((cX2 - cY2)!=0):
+                    t = 2 * cXY / (cX2 - cY2)
+                else:
+                    t = 0
+                
+                theta = 0.5 * np.arctan(t) * 180
+                cv2.ellipse(img, (cX, cY), (dX, dY), theta, 0, 360, (255, 255, 255))
 
         cv2.namedWindow('title', cv2.WINDOW_NORMAL)
         cv2.imshow('title', img)
