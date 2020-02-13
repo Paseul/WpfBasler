@@ -453,6 +453,9 @@ namespace WpfBasler
 
                             foreach (OpenCvSharp.Point[] p in contours)
                             {
+                                if (Cv2.ContourArea(p) < 1000)
+                                    continue;
+
                                 Moments moments = Cv2.Moments(p, true);
 
                                 if (moments.M00 != 0)
