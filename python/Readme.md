@@ -32,7 +32,7 @@ $ Sudo apt install swig
 & pip install pypylon
 
 4. 실행
-$ python Basler.py --min 50 --max 255
+$ python Basler.py --e 20000 --o video/output.avi --min 50 --max 255
 $ python Basler_nano.py
 $ python basler_fourier.py
 $ python video_tracking.py --v video/cropped.avi --o video/tracked.avi --min 50 --max 255

@@ -7,10 +7,15 @@ from pypylon import pylon
 import numpy as np
 from matplotlib import pyplot as plt
 import cv2
+import argparse
 from Iso11146 import Iso11146
 
 # construct the argument parse and parse the arguments
 ap = argparse.ArgumentParser()
+ap.add_argument("-o", "--output", default="Original.avi",
+	help="path to the (optional) video file")
+ap.add_argument("-e", "--exposure_time", type=int, default=20000,
+	help="Set Exposure Time")
 ap.add_argument("-min", "--minimum_thresh", type=int, default=50,
 	help="minimum thresh value")
 ap.add_argument("-max", "--maximum_thresh", type=int, default=255,
@@ -24,6 +29,9 @@ camera = pylon.InstantCamera(pylon.TlFactory.GetInstance().CreateFirstDevice())
 camera.StartGrabbing(pylon.GrabStrategy_LatestImageOnly) 
 converter = pylon.ImageFormatConverter()
 
+# Control Exposure Time
+camera.ExposureTime.SetValue(args["exposure_time"])
+
 # converting to opencv bgr format
 converter.OutputPixelFormat = pylon.PixelType_BGR8packed
 converter.OutputBitAlignment = pylon.OutputBitAlignment_MsbAligned
@@ -32,7 +40,7 @@ converter.OutputBitAlignment = pylon.OutputBitAlignment_MsbAligned
 videoWriter = cv2.VideoWriter()
 
 fourcc = cv2.VideoWriter_fourcc(*'XVID')
-videoWriter.open("Original.avi", fourcc, 14, (1920, 1374), False)   
+videoWriter.open(args["output"], fourcc, 14, (1920, 1374), False)   
 
 while camera.IsGrabbing():
     grabResult = camera.RetrieveResult(5000, pylon.TimeoutHandling_ThrowException)   
