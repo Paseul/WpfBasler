@@ -9,6 +9,14 @@ from matplotlib import pyplot as plt
 import cv2
 from Iso11146 import Iso11146
 
+# construct the argument parse and parse the arguments
+ap = argparse.ArgumentParser()
+ap.add_argument("-min", "--minimum_thresh", type=int, default=50,
+	help="minimum thresh value")
+ap.add_argument("-max", "--maximum_thresh", type=int, default=255,
+	help="maximum thresh value")
+args = vars(ap.parse_args())
+
 # conecting to the first available camera
 camera = pylon.InstantCamera(pylon.TlFactory.GetInstance().CreateFirstDevice())
 
@@ -37,9 +45,7 @@ while camera.IsGrabbing():
 
         np.where(img < 5, 0, img)  
 
-        ret, thresh = cv2.threshold(img, 200, 255, 0)
-
-        img = Iso11146.ellipse(img)
+        img = Iso11146.ellipse(img, args["minimum_thresh"], args["maximum_thresh"])
         img = cv2.resize(img, (1920, 1374))    
 
         videoWriter.write(img)              
