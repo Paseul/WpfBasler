@@ -33,11 +33,6 @@ namespace WpfBasler
         public bool saveHeatmap = false;
         public int valueGain;
         public int valueExpTime;
-        public bool isHoughLines = false;
-        public bool isMinEnclosing = false;
-        public bool isFourier = false;
-        public bool isClahe = false;
-        public bool isEqualize = false;
 
         public BaslerCamera(string ip)
         {
@@ -87,9 +82,6 @@ namespace WpfBasler
 
                         // Background map subtraction
                         Cv2.Subtract(dst, -5, dst);
-
-                        // Apply Fourier Transform
-                        if(isFourier) dst = cvProcess.fourier(img);
 
                         // save images
                         if(saveTracked) Cv2.ImWrite(path + ".jpg", dst);
@@ -206,15 +198,15 @@ namespace WpfBasler
 
                 if (saveTracked)
                 {
-                    var expected = new OpenCvSharp.Size(3840, 2748);
-                    string filename = "D:\\save\\" + DateTime.Now.ToString("M.dd-HH.mm.ss") + ".mp4";
-                    videoWriter.Open(filename, OpenCvSharp.FourCCValues.MJPG, 14, expected, false);
+                    var expected = new OpenCvSharp.Size(1920, 1374);
+                    string filename = "D:\\save\\" + DateTime.Now.ToString("M.dd-HH.mm.ss") + ".avi";
+                    videoWriter.Open(filename, OpenCvSharp.FourCCValues.XVID, 14, expected, false);
                 }
                 if (saveOrigin)
                 {
-                    var expected = new OpenCvSharp.Size(3840, 2748);
+                    var expected = new OpenCvSharp.Size(1920, 1374);
                     string filename = "D:\\save\\" + DateTime.Now.ToString("M.dd-HH.mm.ss") + ".origin.avi";
-                    originWriter.Open(filename, OpenCvSharp.FourCCValues.MJPG, 14, expected, false);
+                    originWriter.Open(filename, OpenCvSharp.FourCCValues.XVID, 14, expected, false);
                 }
                 if (saveHisto)
                 {
@@ -243,6 +235,7 @@ namespace WpfBasler
                             Mat img = convertIImage2Mat(grabResult);
                             // convert image from BayerBG to RGB
                             Cv2.CvtColor(img, img, ColorConversionCodes.BayerBG2GRAY);
+                            Cv2.Resize(img, img, new OpenCvSharp.Size(1920, 1374), 0, 0, InterpolationFlags.Linear);
 
                             Mat histo = new Mat();
                             Mat heatmap = new Mat();
@@ -254,60 +247,21 @@ namespace WpfBasler
                             // Apply ColorMap
                             Cv2.ApplyColorMap(dst, heatmap, ColormapTypes.Rainbow);
 
-                            // Apply Fourier Transform
-                            if(isFourier) dst = cvProcess.fourier(img);
-
                             // Apply Background map subtraction
                             Cv2.Subtract(dst, -5, dst);
 
-                            if (saveOrigin)
-                            {
-                                //Cv2.Resize(img, img, new OpenCvSharp.Size(1920, 1374), 0, 0, InterpolationFlags.Linear);
-                                originWriter.Write(img);
-                            }
-
+                            if (saveOrigin) originWriter.Write(img);
+                            
                             // Create Tracked Image
                             dst = cvProcess.Iso11146(img, dst);
 
-                            /*if (isClahe)
-                            {
-                                CLAHE clahe = Cv2.CreateCLAHE();
-                                clahe = Cv2.CreateCLAHE(clipLimit: 2.0, tileGridSize: new OpenCvSharp.Size(16.0, 16.0));
-                                clahe.Apply(dst, dst);
-                            }
-
-                            if (isEqualize)
-                                Cv2.EqualizeHist(dst, dst);
-
-                            Mat kernel = Cv2.GetStructuringElement(MorphShapes.Ellipse, new OpenCvSharp.Size(3, 3));
-                            Cv2.GaussianBlur(dst, dst, new OpenCvSharp.Size(3, 3), 3, 3, BorderTypes.Reflect101);
-                            Cv2.Erode(dst, dst, kernel, new OpenCvSharp.Point(-1, -1), valueErode, BorderTypes.Reflect101, new Scalar(0));                                                                   
-
-                            if (isMinEnclosing)
-                                dst = MinEnclosing(dst);                                                                                
-
-                            if (isHoughLines)
-                                dst = houghLines(dst);                                                        
-                            */
-
-                            if (saveTracked)
-                            {
-                                Cv2.Resize(dst, dst, new OpenCvSharp.Size(1920, 1374), 0, 0, InterpolationFlags.Linear);
-
-                                videoWriter.Write(dst);
-
-                                Cv2.Resize(dst, dst, new OpenCvSharp.Size(960, 687), 0, 0, InterpolationFlags.Linear);
-                            }
-                            if (saveHisto)
-                            {
-                                histoWriter.Write(histo);
-                            }
-                            if (saveHeatmap)
-                            {
-                                heatmapWriter.Write(heatmap);
-                            }
+                            Cv2.Resize(dst, dst, new OpenCvSharp.Size(1920, 1374), 0, 0, InterpolationFlags.Linear);
+                            if (saveTracked) videoWriter.Write(dst);
+                            if (saveHisto) histoWriter.Write(histo);
+                            if (saveHeatmap) heatmapWriter.Write(heatmap);
 
                             // resize image  to fit the imageBox                            
+                            Cv2.Resize(dst, dst, new OpenCvSharp.Size(960, 687), 0, 0, InterpolationFlags.Linear);
                             Cv2.Resize(heatmap, heatmap, new OpenCvSharp.Size(256, 183), 0, 0, InterpolationFlags.Linear);        
 
                             // display images

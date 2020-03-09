@@ -37,7 +37,20 @@ namespace WpfBasler
         {
             baslerCamera = new BaslerCamera("192.168.1.6");
             baslerCamera.valueExpTime = (int)sliderExpTime.Value;
+            btnConnect.Background = Brushes.LightGreen;
             isConnect = true;
+        }
+
+        private void btnDisConnect_Click(object sender, RoutedEventArgs e)
+        {
+            isConnect = false;
+            btnConnect.Background = Brushes.LightBlue;
+            baslerCamera.grabbing = false;
+
+            checkSaveTracked.IsEnabled = true;
+            checkSaveOrigin.IsEnabled = true;
+            checkSaveHisto.IsEnabled = true;
+            checkSaveHeatmap.IsEnabled = true;
         }
 
         private void btnOneShot_Click(object sender, RoutedEventArgs e)
@@ -53,53 +66,12 @@ namespace WpfBasler
             checkSaveOrigin.IsEnabled = false;
             checkSaveHisto.IsEnabled = false;
             checkSaveHeatmap.IsEnabled = false;
-        }
-
-        private void btnDisConnect_Click(object sender, RoutedEventArgs e)
-        {
-            isConnect = false;
-            baslerCamera.grabbing = false;
-
-            checkSaveTracked.IsEnabled = true;
-            checkSaveOrigin.IsEnabled = true;
-            checkSaveHisto.IsEnabled = true;
-            checkSaveHeatmap.IsEnabled = true;
-        }
+        }        
 
         private void sliderGain_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {            
             baslerCamera.valueGain = (int)sliderGain.Value;
         }             
-
-        private void sliderErode_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
-        {
-            //valueErode = (int)sliderErode.Value;
-        }
-
-        private void checkClahe_Checked(object sender, RoutedEventArgs e)
-        {
-            baslerCamera.isClahe = true;
-        }
-
-        private void checkClahe_Unchecked(object sender, RoutedEventArgs e)
-        {
-            baslerCamera.isClahe = false;
-        }
-
-        private void checkEqual_Checked(object sender, RoutedEventArgs e)
-        {
-            baslerCamera.isEqualize = true;
-        }
-
-        private void checkEqual_Unchecked(object sender, RoutedEventArgs e)
-        {
-            baslerCamera.isEqualize = false;
-        }                    
-
-        private void sliderRange_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
-        {
-            //valueRange = (int)sliderRange.Value;
-        }
 
         private void sliderExpTime_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
@@ -145,36 +117,6 @@ namespace WpfBasler
         private void checkSaveHeatmap_Unchecked(object sender, RoutedEventArgs e)
         {
             baslerCamera.saveHeatmap = false;
-        }
-
-        private void radioHoughlines_Checked(object sender, RoutedEventArgs e)
-        {
-            baslerCamera.isHoughLines = true;
-        }
-
-        private void radioHoughlines_Unchecked(object sender, RoutedEventArgs e)
-        {
-            baslerCamera.isHoughLines = false;
-        }
-
-        private void radioMinenclosing_Checked(object sender, RoutedEventArgs e)
-        {
-            baslerCamera.isMinEnclosing = true;
-        }
-
-        private void radioMinenclosing_Unchecked(object sender, RoutedEventArgs e)
-        {
-            baslerCamera.isMinEnclosing = false;
-        }
-
-        private void radioFourier_Checked(object sender, RoutedEventArgs e)
-        {
-            baslerCamera.isFourier = true;
-        }
-
-        private void radioFourier_Unchecked(object sender, RoutedEventArgs e)
-        {
-            baslerCamera.isFourier = false;
         }
     }
 }

@@ -10,31 +10,19 @@
         <Button x:Name="btnOneShot" Content="OneShot" HorizontalAlignment="Left" Margin="214,44,0,0" VerticalAlignment="Top" Width="75" Click="btnOneShot_Click"/>
         <Image x:Name="imgCamera" HorizontalAlignment="Left" Height="687" Margin="361,10,0,0" VerticalAlignment="Top" Width="960"/>
         <Button x:Name="btnConShot" Content="ConShot" HorizontalAlignment="Left" Margin="214,69,0,0" VerticalAlignment="Top" Width="75" Click="btnConShot_Click"/>
-        <Button x:Name="btnConnect" Content="Connect" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Width="75" RenderTransformOrigin="-0.26,0.575" Click="btnConnect_Click"/>
-        <Button x:Name="btnDisConnect" Content="Disconnect" HorizontalAlignment="Left" Margin="96,10,0,0" VerticalAlignment="Top" Width="76" Click="btnDisConnect_Click"/>
+        <Button x:Name="btnConnect" Content="Connect" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Width="75" RenderTransformOrigin="-0.26,0.575" Click="btnConnect_Click" Background="LightBlue"/>
+        <Button x:Name="btnDisConnect" Content="Disconnect" HorizontalAlignment="Left" Margin="96,10,0,0" VerticalAlignment="Top" Width="76" Click="btnDisConnect_Click" Background="LightPink"/>
         <CheckBox x:Name="checkSaveTracked" Content="Save Tracked" HorizontalAlignment="Left" Margin="11,45,0,0" VerticalAlignment="Top" Checked="checkSaveTracked_Checked" Unchecked="checkSaveTracked_Unchecked"/>
-        <Slider x:Name="sliderGain" TickPlacement="BottomRight" TickFrequency="1" Maximum="16.67" HorizontalAlignment="Left" Margin="66,188,0,0" VerticalAlignment="Top" Width="168" ValueChanged="sliderGain_ValueChanged"/>
-        <TextBox Text="{Binding ElementName=sliderGain, Path=Value, UpdateSourceTrigger=PropertyChanged}" HorizontalAlignment="Left" Height="24" Margin="239,182,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="50"/>
-        <TextBlock x:Name="txtGain" HorizontalAlignment="Left" Margin="13,191,0,0" TextWrapping="Wrap" Text="Gain" VerticalAlignment="Top"/>
+        <Slider x:Name="sliderGain" TickPlacement="BottomRight" TickFrequency="1" Maximum="16.67" HorizontalAlignment="Left" Margin="66,105,0,0" VerticalAlignment="Top" Width="168" ValueChanged="sliderGain_ValueChanged"/>
+        <TextBox Text="{Binding ElementName=sliderGain, Path=Value, UpdateSourceTrigger=PropertyChanged}" HorizontalAlignment="Left" Height="24" Margin="239,99,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="50"/>
+        <TextBlock x:Name="txtGain" HorizontalAlignment="Left" Margin="13,108,0,0" TextWrapping="Wrap" Text="Gain" VerticalAlignment="Top"/>
         <Image x:Name="imgHisto" HorizontalAlignment="Left" Height="300" Margin="1326,198,0,0" VerticalAlignment="Top" Width="256"/>
         <Image x:Name="imgHeatmap" HorizontalAlignment="Left" Height="183" Margin="1326,10,0,0" VerticalAlignment="Top" Width="256"/>
-        <Slider x:Name="sliderErode" TickPlacement="BottomRight" TickFrequency="10" Maximum="150" Minimum="1" HorizontalAlignment="Left" Margin="66,250,0,0" VerticalAlignment="Top" Width="168" IsSnapToTickEnabled="True" ValueChanged="sliderErode_ValueChanged" IsEnabled="False" />
-        <TextBox Text="{Binding Value, ElementName=sliderErode, UpdateSourceTrigger=PropertyChanged}" HorizontalAlignment="Left" Height="24" Margin="239,245,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="50" IsEnabled="False"/>
-        <TextBlock x:Name="txtErode" HorizontalAlignment="Left" Margin="13,251,0,0" TextWrapping="Wrap" Text="Erode" VerticalAlignment="Top" IsEnabled="False"/>
-        <CheckBox x:Name="checkClahe" Content="Clahe" HorizontalAlignment="Left" Margin="11,161,0,0" VerticalAlignment="Top" Checked="checkClahe_Checked" Unchecked="checkClahe_Unchecked" IsEnabled="False"/>
-        <CheckBox x:Name="checkEqual" Content="EqualizeHist" HorizontalAlignment="Left" Margin="96,161,0,0" VerticalAlignment="Top" Checked="checkEqual_Checked" Unchecked="checkEqual_Unchecked" IsEnabled="False"/>
-        <RadioButton x:Name="radioHoughlines" Content="HoughLines" HorizontalAlignment="Left" Margin="10,111,0,0" VerticalAlignment="Top" RenderTransformOrigin="-0.081,0.6" Checked="radioHoughlines_Checked" Unchecked="radioHoughlines_Unchecked" IsEnabled="False"/>
-        <RadioButton x:Name="radioMinenclosing" Content="MinEnclosing" HorizontalAlignment="Left" Margin="108,111,0,0" VerticalAlignment="Top" Checked="radioMinenclosing_Checked" Unchecked="radioMinenclosing_Unchecked" IsEnabled="False"/>
-        <TextBlock x:Name="txtRange" HorizontalAlignment="Left" Margin="13,282,0,0" TextWrapping="Wrap" Text="Range" VerticalAlignment="Top" IsEnabled="False"/>
-        <Slider x:Name="sliderRange" TickPlacement="BottomRight" TickFrequency="1" Minimum="230" Maximum="255" HorizontalAlignment="Left" Margin="66,282,0,0" VerticalAlignment="Top" Width="168" ValueChanged="sliderRange_ValueChanged" IsEnabled="False"/>
-        <TextBox Text="{Binding Value, ElementName=sliderRange, UpdateSourceTrigger=PropertyChanged}" HorizontalAlignment="Left" Height="24" Margin="239,276,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="50" RenderTransformOrigin="0.525,1.917" IsEnabled="False"/>
-        <TextBlock x:Name="txtExpTime" HorizontalAlignment="Left" Margin="13,220,0,0" TextWrapping="Wrap" Text="ExpTime" VerticalAlignment="Top"/>
-        <Slider x:Name="sliderExpTime" TickFrequency="1000" Minimum="1000"  Maximum="100000" HorizontalAlignment="Left" Margin="66,217,0,0" VerticalAlignment="Top" Width="168" ValueChanged="sliderExpTime_ValueChanged" SmallChange="100" />
-        <TextBox Text="{Binding Value, ElementName=sliderExpTime, UpdateSourceTrigger=PropertyChanged}" HorizontalAlignment="Left" Height="24" Margin="239,213,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="50"/>
+        <TextBlock x:Name="txtExpTime" HorizontalAlignment="Left" Margin="13,137,0,0" TextWrapping="Wrap" Text="ExpTime" VerticalAlignment="Top"/>
+        <Slider x:Name="sliderExpTime" TickFrequency="1000" Minimum="1000"  Maximum="100000" HorizontalAlignment="Left" Margin="66,134,0,0" VerticalAlignment="Top" Width="168" ValueChanged="sliderExpTime_ValueChanged" SmallChange="100" />
+        <TextBox Text="{Binding Value, ElementName=sliderExpTime, UpdateSourceTrigger=PropertyChanged}" HorizontalAlignment="Left" Height="24" Margin="239,130,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="50"/>
         <CheckBox x:Name="checkSaveOrigin" Content="Save Origin" HorizontalAlignment="Left" Margin="108,44,0,0" VerticalAlignment="Top" Checked="checkSaveOrigin_Checked" Unchecked="checkSaveOrigin_Unchecked"/>
         <CheckBox x:Name="checkSaveHisto" Content="Save Histo" HorizontalAlignment="Left" Margin="11,72,0,0" VerticalAlignment="Top" Checked="checkSaveHisto_Checked" Unchecked="checkSaveHisto_Unchecked"/>
         <CheckBox x:Name="checkSaveHeatmap" Content="Save Heatmap" HorizontalAlignment="Left" Margin="108,69,0,0" VerticalAlignment="Top" Checked="checkSaveHeatmap_Checked" Unchecked="checkSaveHeatmap_Unchecked"/>
-        <RadioButton x:Name="radioFourier" Content="Fourier" HorizontalAlignment="Left" Margin="10,131,0,0" VerticalAlignment="Top" RenderTransformOrigin="-0.081,0.6" IsEnabled="False" Checked="radioFourier_Checked" Unchecked="radioFourier_Unchecked"/>
-
     </Grid>
 </Window>
