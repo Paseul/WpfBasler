@@ -32,3 +32,5 @@ C:\Github\WpfBasler\WpfBasler\bin\Debug\dll\x64\opencv_videoio_ffmpeg411_64.dll
 C:\Github\WpfBasler\WpfBasler\obj\Debug\WpfBasler_Content.g.cs
 C:\Github\WpfBasler\WpfBasler\bin\Debug\Basler.Pylon.dll
 C:\Github\WpfBasler\WpfBasler\bin\Debug\Basler.Pylon.xml
+C:\github\WpfBasler\WpfBasler\bin\Debug\Thorlabs.TL4000.dll
+C:\github\WpfBasler\WpfBasler\bin\Debug\Thorlabs.TL4000.xml

@@ -24,5 +24,21 @@
         <CheckBox x:Name="checkSaveOrigin" Content="Save Origin" HorizontalAlignment="Left" Margin="108,44,0,0" VerticalAlignment="Top" Checked="checkSaveOrigin_Checked" Unchecked="checkSaveOrigin_Unchecked"/>
         <CheckBox x:Name="checkSaveHisto" Content="Save Histo" HorizontalAlignment="Left" Margin="11,72,0,0" VerticalAlignment="Top" Checked="checkSaveHisto_Checked" Unchecked="checkSaveHisto_Unchecked"/>
         <CheckBox x:Name="checkSaveHeatmap" Content="Save Heatmap" HorizontalAlignment="Left" Margin="108,69,0,0" VerticalAlignment="Top" Checked="checkSaveHeatmap_Checked" Unchecked="checkSaveHeatmap_Unchecked"/>
+        <Slider x:Name="sliderLD1_current" TickPlacement="BottomRight" TickFrequency="0.1" Maximum="0.8" HorizontalAlignment="Left" Margin="66,218,0,0" VerticalAlignment="Top" Width="168" ValueChanged="sliderLD1_current_ValueChanged" SmallChange="0.01"/>
+        <TextBox Text="{Binding Value, ElementName=sliderLD1_current, UpdateSourceTrigger=PropertyChanged}" HorizontalAlignment="Left" Height="24" Margin="239,212,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="50"/>
+        <TextBlock x:Name="txtLD1_current" HorizontalAlignment="Left" Margin="13,221,0,0" TextWrapping="Wrap" Text="Current" VerticalAlignment="Top"/>
+        <TextBlock x:Name="txtLD1_temp" HorizontalAlignment="Left" Margin="13,250,0,0" TextWrapping="Wrap" Text="Temp" VerticalAlignment="Top"/>
+        <Slider x:Name="sliderLD1_temp" TickFrequency="10" Minimum="-10"  Maximum="70" HorizontalAlignment="Left" Margin="66,247,0,0" VerticalAlignment="Top" Width="168" ValueChanged="sliderLD1_temp_ValueChanged" SmallChange="1" TickPlacement="BottomRight" Value="30" />
+        <TextBox Text="{Binding Value, ElementName=sliderLD1_temp, UpdateSourceTrigger=PropertyChanged}" HorizontalAlignment="Left" Height="24" Margin="239,243,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="50"/>
+        <Button Content="LD1 연결" HorizontalAlignment="Left" Margin="10,185,0,0" VerticalAlignment="Top" Width="75" Height="23" Click="Button_Click"/>
+        <Button Content="LD1 해제" HorizontalAlignment="Left" Margin="96,185,0,0" VerticalAlignment="Top" Width="76" Height="23" Click="Button_Click_1"/>
+        <Slider x:Name="sliderLD2_current" TickPlacement="BottomRight" TickFrequency="0.1" Maximum="0.8" HorizontalAlignment="Left" Margin="66,323,0,0" VerticalAlignment="Top" Width="168" ValueChanged="sliderLD2_current_ValueChanged" SmallChange="0.01"/>
+        <TextBox Text="{Binding Value, ElementName=sliderLD2_current, UpdateSourceTrigger=PropertyChanged}" HorizontalAlignment="Left" Height="24" Margin="239,317,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="50"/>
+        <TextBlock x:Name="txtLD2_current" HorizontalAlignment="Left" Margin="13,326,0,0" TextWrapping="Wrap" Text="Current" VerticalAlignment="Top"/>
+        <TextBlock x:Name="txtLD2_temp" HorizontalAlignment="Left" Margin="13,355,0,0" TextWrapping="Wrap" Text="Temp" VerticalAlignment="Top"/>
+        <Slider x:Name="sliderLD2_temp" TickFrequency="10" Minimum="-10"  Maximum="70" HorizontalAlignment="Left" Margin="66,352,0,0" VerticalAlignment="Top" Width="168" ValueChanged="sliderLD2_temp_ValueChanged" SmallChange="1" TickPlacement="BottomRight" Value="30" />
+        <TextBox Text="{Binding Value, ElementName=sliderLD2_temp, UpdateSourceTrigger=PropertyChanged}" HorizontalAlignment="Left" Height="24" Margin="239,348,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="50"/>
+        <Button Content="LD2 연결" HorizontalAlignment="Left" Margin="10,290,0,0" VerticalAlignment="Top" Width="75" Height="23" Click="Button_Click_3"/>
+        <Button Content="LD2 해제" HorizontalAlignment="Left" Margin="96,290,0,0" VerticalAlignment="Top" Width="76" Height="23" Click="Button_Click_2"/>
     </Grid>
 </Window>
