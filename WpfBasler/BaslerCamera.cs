@@ -78,15 +78,15 @@ namespace WpfBasler
                         Cv2.ApplyColorMap(dst, heatmap, ColormapTypes.Rainbow);
 
                         // Save Original Image
-                        if(saveOrigin) Cv2.ImWrite(path + ".origin.jpg", img);
+                        if (saveOrigin) Cv2.ImWrite(path + ".origin.jpg", img);
 
                         // Background map subtraction
                         Cv2.Subtract(dst, -5, dst);
 
                         // save images
-                        if(saveTracked) Cv2.ImWrite(path + ".jpg", dst);
+                        if (saveTracked) Cv2.ImWrite(path + ".jpg", dst);
                         if (saveHisto) Cv2.ImWrite(path + ".histo.jpg", histo);
-                        if(saveHeatmap) Cv2.ImWrite(path + ".heatmap.jpg", heatmap);
+                        if (saveHeatmap) Cv2.ImWrite(path + ".heatmap.jpg", heatmap);
 
                         // resize image  to fit the imageBox
                         Cv2.Resize(dst, dst, new OpenCvSharp.Size(960, 687), 0, 0, InterpolationFlags.Linear);
@@ -232,7 +232,8 @@ namespace WpfBasler
                         if (grabResult.GrabSucceeded)
                         {
                             // convert image from basler IImage to OpenCV Mat
-                            Mat img = convertIImage2Mat(grabResult);
+                            Mat img = convertIImage2Mat(grabResult);                            
+
                             // convert image from BayerBG to RGB
                             Cv2.CvtColor(img, img, ColorConversionCodes.BayerBG2GRAY);
                             Cv2.Resize(img, img, new OpenCvSharp.Size(1920, 1374), 0, 0, InterpolationFlags.Linear);
@@ -251,9 +252,9 @@ namespace WpfBasler
                             Cv2.Subtract(dst, -5, dst);
 
                             if (saveOrigin) originWriter.Write(img);
-                            
+
                             // Create Tracked Image
-                            dst = cvProcess.Iso11146(img, dst);
+                            dst = cvProcess.Iso11146(img, dst);                            
 
                             Cv2.Resize(dst, dst, new OpenCvSharp.Size(1920, 1374), 0, 0, InterpolationFlags.Linear);
                             if (saveTracked) videoWriter.Write(dst);
@@ -262,7 +263,11 @@ namespace WpfBasler
 
                             // resize image  to fit the imageBox                            
                             Cv2.Resize(dst, dst, new OpenCvSharp.Size(960, 687), 0, 0, InterpolationFlags.Linear);
-                            Cv2.Resize(heatmap, heatmap, new OpenCvSharp.Size(256, 183), 0, 0, InterpolationFlags.Linear);        
+                            Cv2.Resize(heatmap, heatmap, new OpenCvSharp.Size(256, 183), 0, 0, InterpolationFlags.Linear);
+                           
+                            Cv2.Rectangle(dst, new OpenCvSharp.Rect(200, 300, 100, 100), Scalar.White, 1);
+                            Cv2.Rectangle(dst, new OpenCvSharp.Rect(400, 300, 100, 100), Scalar.White, 1);
+                            Cv2.Rectangle(dst, new OpenCvSharp.Rect(600, 300, 100, 100), Scalar.White, 1);
 
                             // display images
                             BitmapToImageSource(dst);

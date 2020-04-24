@@ -24,8 +24,8 @@ namespace WpfBasler
         private BaslerCamera baslerCamera;        
         bool isConnect = false;
 
-        TL4000 itc = new TL4000("USB::4883::32842::M00421760::INSTR", true, false);
-        TL4000 itc2 = new TL4000("USB::4883::32842::M00421760::INSTR", true, false);
+        //TL4000 itc = new TL4000("USB::4883::32842::M00421760::INSTR", true, false);
+        //TL4000 itc2 = new TL4000("USB::4883::32842::M00421760::INSTR", true, false);
 
 
         public MainWindow()
@@ -126,64 +126,64 @@ namespace WpfBasler
 
         private void sliderLD1_current_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
-            itc.setLdCurrSetpoint(sliderLD1_current.Value);
+            //itc.setLdCurrSetpoint(sliderLD1_current.Value);
         }
 
         private void sliderLD1_temp_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
-            itc.setTempSetpoint(sliderLD1_temp.Value);
+            //itc.setTempSetpoint(sliderLD1_temp.Value);
         }
 
         private void Button_Click(object sender, RoutedEventArgs e)
         {
-            itc.setLdOperatingMode(0);
+            //itc.setLdOperatingMode(0);
 
-            itc.setLdCurrSetpoint(sliderLD1_current.Value);
-            itc.setTempSetpoint(sliderLD1_temp.Value);
+            //itc.setLdCurrSetpoint(sliderLD1_current.Value);
+            //itc.setTempSetpoint(sliderLD1_temp.Value);
 
-            //Turn on TEC
-            itc.switchTecOutput(true);
-            //Turn on Laser Diode
-            itc.switchLdOutput(true);
+            ////Turn on TEC
+            //itc.switchTecOutput(true);
+            ////Turn on Laser Diode
+            //itc.switchLdOutput(true);
         }
 
         private void Button_Click_1(object sender, RoutedEventArgs e)
         {
-            //Turn off Laser Diode
-            itc.switchLdOutput(false);
-            //Turn off TEC
-            itc.switchTecOutput(false);
+            ////Turn off Laser Diode
+            //itc.switchLdOutput(false);
+            ////Turn off TEC
+            //itc.switchTecOutput(false);
         }
 
         private void Button_Click_2(object sender, RoutedEventArgs e)
         {
-            //Turn off Laser Diode
-            itc2.switchLdOutput(false);
-            //Turn off TEC
-            itc2.switchTecOutput(false);
+            ////Turn off Laser Diode
+            //itc2.switchLdOutput(false);
+            ////Turn off TEC
+            //itc2.switchTecOutput(false);
         }
 
         private void Button_Click_3(object sender, RoutedEventArgs e)
         {
-            itc2.setLdOperatingMode(0);
+            //itc2.setLdOperatingMode(0);
 
-            itc2.setLdCurrSetpoint(sliderLD2_current.Value);
-            itc2.setTempSetpoint(sliderLD2_temp.Value);
+            //itc2.setLdCurrSetpoint(sliderLD2_current.Value);
+            //itc2.setTempSetpoint(sliderLD2_temp.Value);
 
-            //Turn on TEC
-            itc2.switchTecOutput(true);
-            //Turn on Laser Diode
-            itc2.switchLdOutput(true);
+            ////Turn on TEC
+            //itc2.switchTecOutput(true);
+            ////Turn on Laser Diode
+            //itc2.switchLdOutput(true);
         }
 
         private void sliderLD2_current_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
-            itc2.setLdCurrSetpoint(sliderLD2_current.Value);
+            //itc2.setLdCurrSetpoint(sliderLD2_current.Value);
         }
 
         private void sliderLD2_temp_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
-            itc2.setTempSetpoint(sliderLD2_temp.Value);
+            //itc2.setTempSetpoint(sliderLD2_temp.Value);
         }
     }
 }
