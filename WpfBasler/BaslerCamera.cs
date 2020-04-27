@@ -13,6 +13,7 @@ using System.Drawing;
 using System.Threading;
 using System.Windows.Threading;
 using System.IO;
+using Thorlabs.TL4000;
 
 namespace WpfBasler
 {
@@ -33,6 +34,17 @@ namespace WpfBasler
         public bool saveHeatmap = false;
         public int valueGain;
         public int valueExpTime;
+        public int axis_x;
+        public int axis_y;
+        public int axis_scale;
+        public bool trackingLD1 = false;
+        public bool trackingLD2 = false;
+        bool tracking = false;
+        int count = 0;
+        double temp;
+
+        public TL4000 itc = new TL4000("USB::4883::32842::M00421760::INSTR", true, false);
+        //TL4000 itc2 = new TL4000("USB::4883::32842::M00421760::INSTR", true, false);
 
         public BaslerCamera(string ip)
         {
@@ -232,7 +244,7 @@ namespace WpfBasler
                         if (grabResult.GrabSucceeded)
                         {
                             // convert image from basler IImage to OpenCV Mat
-                            Mat img = convertIImage2Mat(grabResult);                            
+                            Mat img = convertIImage2Mat(grabResult);
 
                             // convert image from BayerBG to RGB
                             Cv2.CvtColor(img, img, ColorConversionCodes.BayerBG2GRAY);
@@ -254,7 +266,7 @@ namespace WpfBasler
                             if (saveOrigin) originWriter.Write(img);
 
                             // Create Tracked Image
-                            dst = cvProcess.Iso11146(img, dst);                            
+                            dst = Iso11146(img, dst);
 
                             Cv2.Resize(dst, dst, new OpenCvSharp.Size(1920, 1374), 0, 0, InterpolationFlags.Linear);
                             if (saveTracked) videoWriter.Write(dst);
@@ -264,10 +276,8 @@ namespace WpfBasler
                             // resize image  to fit the imageBox                            
                             Cv2.Resize(dst, dst, new OpenCvSharp.Size(960, 687), 0, 0, InterpolationFlags.Linear);
                             Cv2.Resize(heatmap, heatmap, new OpenCvSharp.Size(256, 183), 0, 0, InterpolationFlags.Linear);
-                           
-                            Cv2.Rectangle(dst, new OpenCvSharp.Rect(200, 300, 100, 100), Scalar.White, 1);
-                            Cv2.Rectangle(dst, new OpenCvSharp.Rect(400, 300, 100, 100), Scalar.White, 1);
-                            Cv2.Rectangle(dst, new OpenCvSharp.Rect(600, 300, 100, 100), Scalar.White, 1);
+
+                            Cv2.Rectangle(dst, new OpenCvSharp.Rect(axis_x, axis_y, axis_scale, axis_scale), Scalar.White, 1);
 
                             // display images
                             BitmapToImageSource(dst);
@@ -279,7 +289,13 @@ namespace WpfBasler
                             System.Windows.MessageBox.Show("Error: {0} {1}" + grabResult.ErrorCode, grabResult.ErrorDescription);
                         }
                     }
-
+                    count++;
+                    if(count > 500)
+                    {
+                        count = 0;
+                        tracking = false;
+                    }
+                        
                     Thread.Sleep(snap_wait);
                 }
                 videoWriter.Release();
@@ -304,6 +320,72 @@ namespace WpfBasler
             converter.OutputPixelFormat = PixelType.BGR8packed;
             byte[] buffer = grabResult.PixelData as byte[];
             return new Mat(grabResult.Height, grabResult.Width, MatType.CV_8U, buffer);
+        }
+
+        public Mat Iso11146(Mat img, Mat dst)
+        {
+            Cv2.Resize(img, img, new OpenCvSharp.Size(960, 687), 0, 0, InterpolationFlags.Linear);
+            Cv2.Resize(dst, dst, new OpenCvSharp.Size(960, 687), 0, 0, InterpolationFlags.Linear);
+
+            OpenCvSharp.Point[][] contours;
+            HierarchyIndex[] hierarchy;
+            Cv2.Threshold(img, img, 50, 255, ThresholdTypes.Binary);
+            Cv2.FindContours(img, out contours, out hierarchy, RetrievalModes.External, ContourApproximationModes.ApproxTC89L1);
+
+            foreach (OpenCvSharp.Point[] p in contours)
+            {
+                if (Cv2.ContourArea(p) < 1000)
+                    continue;
+
+                Moments moments = Cv2.Moments(p, true);
+
+                if (moments.M00 != 0)
+                {
+                    int cX = (int)(moments.M10 / moments.M00);
+                    int cY = (int)(moments.M01 / moments.M00);
+                    int cX2 = (int)(moments.Mu20 / moments.M00);
+                    int cXY = (int)(moments.Mu11 / moments.M00);
+                    int cY2 = (int)(moments.Mu02 / moments.M00);
+
+                    double a = Math.Pow(((cX2 + cY2) + 2 * Math.Abs(cXY)), 0.5);
+                    int dX = (int)(2 * Math.Pow(2, 0.5) * Math.Pow(((cX2 + cY2) + 2 * Math.Abs(cXY)), 0.5));
+                    int dY = (int)(2 * Math.Pow(2, 0.5) * Math.Pow(((cX2 + cY2) - 2 * Math.Abs(cXY)), 0.5));
+
+                    double t;
+                    if ((cX2 - cY2) != 0)
+                        t = 2 * cXY / (cX2 - cY2);
+                    else
+                        t = 0;
+
+                    double theta = 0.5 * Math.Atan(t) * 180;
+                    OpenCvSharp.Point center = new OpenCvSharp.Point(cX, cY);
+                    OpenCvSharp.Size axis = new OpenCvSharp.Size(dX, dY);
+                    Cv2.Circle(dst, cX, cY, 1, Scalar.Black);
+                    if (trackingLD1)
+                    {
+                        if (tracking == false)
+                        {
+                            tracking = true;
+
+                            if ((cX - (axis_x + axis_scale/2)) > 10)
+                            {       
+                                itc.getTecCurrSetpoint(0, out temp);
+                                itc.setTecCurrSetpoint(temp - 0.005);
+                            }
+                            else if ((cX - (axis_x + axis_scale / 2)) < -10)
+                            {
+                                itc.getTecCurrSetpoint(0, out temp);
+                                itc.setTecCurrSetpoint(temp + 0.005);
+                            }
+                        }
+                    }
+
+                    if (dX > 0 && dY > 0)
+                        Cv2.Ellipse(dst, center, axis, theta, 0, 360, Scalar.White);
+                }
+            }
+
+            return dst;
         }
 
         void BitmapToImageSource(Mat dst)

@@ -40,5 +40,17 @@
         <TextBox Text="{Binding Value, ElementName=sliderLD2_temp, UpdateSourceTrigger=PropertyChanged}" HorizontalAlignment="Left" Height="24" Margin="239,348,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="50"/>
         <Button Content="LD2 연결" HorizontalAlignment="Left" Margin="10,290,0,0" VerticalAlignment="Top" Width="75" Height="23" Click="Button_Click_3"/>
         <Button Content="LD2 해제" HorizontalAlignment="Left" Margin="96,290,0,0" VerticalAlignment="Top" Width="76" Height="23" Click="Button_Click_2"/>
+        <TextBlock HorizontalAlignment="Left" Margin="24,395,0,0" TextWrapping="Wrap" Text="X 좌표" VerticalAlignment="Top"/>
+        <TextBlock HorizontalAlignment="Left" Margin="112,395,0,0" TextWrapping="Wrap" Text="Y 좌표" VerticalAlignment="Top"/>
+        <TextBlock HorizontalAlignment="Left" Margin="199,395,0,0" TextWrapping="Wrap" Text="범위" VerticalAlignment="Top"/>
+        <Slider x:Name="slider_axis_x" TickPlacement="BottomRight" TickFrequency="100" Maximum="860" HorizontalAlignment="Left" Margin="39,522,0,0" VerticalAlignment="Top" Width="168" ValueChanged="slider_axis_x_ValueChanged" SmallChange="1" LargeChange="10" Visibility="Hidden" Value="100"/>
+        <TextBox Text="{Binding Value, ElementName=slider_axis_x, UpdateSourceTrigger=PropertyChanged}" HorizontalAlignment="Left" Height="24" Margin="21,416,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="64"/>
+        <Slider x:Name="slider_axis_y" TickPlacement="BottomRight" TickFrequency="100" Maximum="587" HorizontalAlignment="Left" Margin="39,565,0,0" VerticalAlignment="Top" Width="168" ValueChanged="slider_axis_y_ValueChanged" SmallChange="1" LargeChange="10" Visibility="Hidden" Value="100"/>
+        <TextBox Text="{Binding Value, ElementName=slider_axis_y, UpdateSourceTrigger=PropertyChanged}" HorizontalAlignment="Left" Height="24" Margin="108,416,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="64"/>
+        <Slider x:Name="slider_axis_scale" TickPlacement="BottomRight" TickFrequency="10" Maximum="300" HorizontalAlignment="Left" Margin="39,603,0,0" VerticalAlignment="Top" Width="168" ValueChanged="slider_axis_scale_ValueChanged" SmallChange="1" LargeChange="10" Minimum="1" Visibility="Hidden" Value="100"/>
+        <TextBox Text="{Binding Value, ElementName=slider_axis_scale, UpdateSourceTrigger=PropertyChanged}" HorizontalAlignment="Left" Height="24" Margin="199,416,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="64"/>
+        <CheckBox x:Name="checkTracking_w_LD1" Content="Tracking with LD1" HorizontalAlignment="Left" Margin="21,456,0,0" VerticalAlignment="Top" Checked="checkTracking_w_LD1_Checked" Unchecked="checkTracking_w_LD1_Unchecked"/>
+        <CheckBox x:Name="checkTracking_w_LD2" Content="Tracking with LD2" HorizontalAlignment="Left" Margin="154,456,0,0" VerticalAlignment="Top" Checked="checkTracking_w_LD2_Checked" Unchecked="checkTracking_w_LD2_Unchecked"/>
+
     </Grid>
 </Window>

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Windows;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -24,54 +25,7 @@ namespace WpfBasler
             }
 
             return result;
-        }
-
-        public Mat Iso11146(Mat img, Mat dst)
-        {
-            Cv2.Resize(img, img, new OpenCvSharp.Size(960, 687), 0, 0, InterpolationFlags.Linear);
-            Cv2.Resize(dst, dst, new OpenCvSharp.Size(960, 687), 0, 0, InterpolationFlags.Linear);
-
-            OpenCvSharp.Point[][] contours;
-            HierarchyIndex[] hierarchy;
-            Cv2.Threshold(img, img, 50, 255, ThresholdTypes.Binary);
-            Cv2.FindContours(img, out contours, out hierarchy, RetrievalModes.External, ContourApproximationModes.ApproxTC89L1);
-
-            foreach (OpenCvSharp.Point[] p in contours)
-            {
-                if (Cv2.ContourArea(p) < 1000)
-                    continue;
-
-                Moments moments = Cv2.Moments(p, true);
-
-                if (moments.M00 != 0)
-                {
-                    int cX = (int)(moments.M10 / moments.M00);
-                    int cY = (int)(moments.M01 / moments.M00);
-                    int cX2 = (int)(moments.Mu20 / moments.M00);
-                    int cXY = (int)(moments.Mu11 / moments.M00);
-                    int cY2 = (int)(moments.Mu02 / moments.M00);
-
-                    double a = Math.Pow(((cX2 + cY2) + 2 * Math.Abs(cXY)), 0.5);
-                    int dX = (int)(2 * Math.Pow(2, 0.5) * Math.Pow(((cX2 + cY2) + 2 * Math.Abs(cXY)), 0.5));
-                    int dY = (int)(2 * Math.Pow(2, 0.5) * Math.Pow(((cX2 + cY2) - 2 * Math.Abs(cXY)), 0.5));
-
-                    double t;
-                    if ((cX2 - cY2) != 0)
-                        t = 2 * cXY / (cX2 - cY2);
-                    else
-                        t = 0;
-
-                    double theta = 0.5 * Math.Atan(t) * 180;
-                    OpenCvSharp.Point center = new OpenCvSharp.Point(cX, cY);
-                    OpenCvSharp.Size axis = new OpenCvSharp.Size(dX, dY);
-                    Cv2.Circle(dst, cX, cY, 1, Scalar.Black);
-                    if (dX > 0 && dY > 0)
-                        Cv2.Ellipse(dst, center, axis, theta, 0, 360, Scalar.White);
-                }
-            }
-
-            return dst;
-        }
+        }        
 
         public Mat fourier(Mat img)
         {
