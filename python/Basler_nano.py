@@ -7,7 +7,14 @@ from pypylon import pylon
 import numpy as np
 import cupy as cp
 from matplotlib import pyplot as plt
+import argparse
 import cv2
+
+# construct the argument parse and parse the arguments
+ap = argparse.ArgumentParser()
+ap.add_argument("-e", "--exposure_time", type=int, default=20000,
+	help="Set Exposure Time")
+args = vars(ap.parse_args())
 
 # conecting to the first available camera
 camera = pylon.InstantCamera(pylon.TlFactory.GetInstance().CreateFirstDevice())
@@ -15,6 +22,9 @@ camera = pylon.InstantCamera(pylon.TlFactory.GetInstance().CreateFirstDevice())
 # Grabing Continusely (video) with minimal delay
 camera.StartGrabbing(pylon.GrabStrategy_LatestImageOnly) 
 converter = pylon.ImageFormatConverter()
+
+# Control Exposure Time
+camera.ExposureTime.SetValue(args["exposure_time"])
 
 # converting to opencv bgr format
 converter.OutputPixelFormat = pylon.PixelType_BGR8packed
