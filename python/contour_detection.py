@@ -54,9 +54,9 @@ for item in file_list:
 		_, thresh = cv2.threshold(img, args["minimum_thresh"], args["maximum_thresh"], 0)
 		contours, _ = cv2.findContours(thresh,cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)
 		for c in contours:
-			square = cv2.contourArea(c)
-			if (square > 500):
-				text = "{}".format(square)
+			area = cv2.contourArea(c)
+			if (area > 500):
+				text = "{}".format(area)
 			else:
 				continue
 				
