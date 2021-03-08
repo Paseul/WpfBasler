@@ -9,6 +9,7 @@ from matplotlib import pyplot as plt
 import cv2
 import argparse
 from Iso11146 import Iso11146
+from imutils.video import FPS
 
 # construct the argument parse and parse the arguments
 ap = argparse.ArgumentParser()
@@ -42,6 +43,7 @@ videoWriter = cv2.VideoWriter()
 fourcc = cv2.VideoWriter_fourcc(*'XVID')
 videoWriter.open(args["output"], fourcc, 14, (1920, 1374), False)   
 
+fps = FPS().start()
 while camera.IsGrabbing():
     grabResult = camera.RetrieveResult(5000, pylon.TimeoutHandling_ThrowException)   
 
@@ -53,8 +55,12 @@ while camera.IsGrabbing():
 
         np.where(img < 5, 0, img)  
 
-        img = Iso11146.ellipse(img, args["minimum_thresh"], args["maximum_thresh"])
+        # img = Iso11146.ellipse(img, args["minimum_thresh"], args["maximum_thresh"])
         img = cv2.resize(img, (1920, 1374))    
+        fps.update()
+        fps.stop()        
+        text = "{:.2f}".format(fps.fps())
+        cv2.putText(img, text, (10, 20), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 2)
 
         videoWriter.write(img)              
 
