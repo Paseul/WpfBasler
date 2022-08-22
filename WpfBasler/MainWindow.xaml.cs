@@ -122,17 +122,17 @@ namespace WpfBasler
 
         private void sliderLD1_current_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
-            if (isConnect)  baslerCamera.itc.setLdCurrSetpoint(sliderLD1_current.Value);
+            //if (isConnect)  baslerCamera.itc.setLdCurrSetpoint(sliderLD1_current.Value);
         }
 
         private void sliderLD1_temp_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
-            if (isConnect)  baslerCamera.itc.setTempSetpoint(sliderLD1_temp.Value);
+            //if (isConnect)  baslerCamera.itc.setTempSetpoint(sliderLD1_temp.Value);
         }
 
         private void Button_Click(object sender, RoutedEventArgs e)
         {
-            if (isConnect)
+            /*if (isConnect)
             {
                 baslerCamera.itc.setLdOperatingMode(0);            
 
@@ -143,18 +143,18 @@ namespace WpfBasler
                 baslerCamera.itc.switchTecOutput(true);
                 //Turn on Laser Diode
                 baslerCamera.itc.switchLdOutput(true);
-            }
+            }*/
         }
 
         private void Button_Click_1(object sender, RoutedEventArgs e)
         {
-            if (isConnect)
+            /*if (isConnect)
             {
                 //Turn off Laser Diode
                 baslerCamera.itc.switchLdOutput(false);
                 //Turn off TEC
                 baslerCamera.itc.switchTecOutput(false);
-            }
+            }*/
         }
 
         private void Button_Click_2(object sender, RoutedEventArgs e)

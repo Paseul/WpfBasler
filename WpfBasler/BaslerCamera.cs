@@ -43,7 +43,7 @@ namespace WpfBasler
         int count = 0;
         double temp;
 
-        public TL4000 itc = new TL4000("USB::4883::32842::M00421760::INSTR", true, false);
+        //public TL4000 itc = new TL4000("USB::4883::32842::M00421760::INSTR", true, false);
         //TL4000 itc2 = new TL4000("USB::4883::32842::M00421760::INSTR", true, false);
 
         public BaslerCamera(string ip)
@@ -361,7 +361,7 @@ namespace WpfBasler
                     OpenCvSharp.Point center = new OpenCvSharp.Point(cX, cY);
                     OpenCvSharp.Size axis = new OpenCvSharp.Size(dX, dY);
                     Cv2.Circle(dst, cX, cY, 1, Scalar.Black);
-                    if (trackingLD1)
+                    /*if (trackingLD1)
                     {
                         if (tracking == false)
                         {
@@ -378,7 +378,7 @@ namespace WpfBasler
                                 itc.setTecCurrSetpoint(temp + 0.005);
                             }
                         }
-                    }
+                    }*/
 
                     if (dX > 0 && dY > 0)
                         Cv2.Ellipse(dst, center, axis, theta, 0, 360, Scalar.White);

@@ -12,5 +12,6 @@
 [assembly: System.Windows.Resources.AssemblyAssociatedContentFileAttribute("opencv_videoio_ffmpeg411.dll")]
 [assembly: System.Windows.Resources.AssemblyAssociatedContentFileAttribute("opencvsharpextern.dll")]
 [assembly: System.Windows.Resources.AssemblyAssociatedContentFileAttribute("opencv_videoio_ffmpeg411_64.dll")]
+[assembly: System.Windows.Resources.AssemblyAssociatedContentFileAttribute("opencvsharpextern.dll")]
 
 
